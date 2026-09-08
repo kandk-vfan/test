@@ -53,8 +53,16 @@ html{
 }
 
 .note-filter-row{
-  margin-top:-10px;
+  display:flex;
+  align-items:center;
+  margin-top:0;
   margin-bottom:10px;
+}
+
+.status-note-inline{
+  margin-left:10px;
+  font-size:13px;
+  color:#e5e7eb;
 }
 
 .play-group{
@@ -867,9 +875,41 @@ body.hjm-theme #songsTable tbody tr:nth-child(odd){
   background:#f8fafc;
 }
 
+.play-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:40px;
+  height:40px;
+  padding:0;
+  font-size:14px;
+  border-radius:8px;
+  text-decoration:none;
+  cursor:pointer;
+  box-sizing:border-box;
+}
+
 /* 再生ボタン */
 body.hjm-theme .play-btn{
   background:#ef4444;
   color:#ffffff;
   border:0px solid #ef4444;
+}
+
+/* 再生不可ボタン(unlisted / gone) */
+.play-btn:disabled{
+  opacity:0.35;
+  cursor:not-allowed;
+  background:#334155;
+}
+
+body.hjm-theme .play-btn:disabled{
+  background:#cbd5e1;
+  color:#6b7280;
+  opacity:0.6;
+  border-color:#6b7280;
+}
+
+body.hjm-theme .status-note-inline{
+  color:#ffffff;
 }

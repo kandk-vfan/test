@@ -9,6 +9,23 @@ let videoId = "";
 let videoInfo = null;
 const results = [];
 const streamNotes = {};
+const manualStatuses = {};
+
+// songs.txtに手動で書く status: の日本語表記 -> 内部コード
+const STATUS_MAP = {
+  "メンバー限定": "members",
+  "限定公開": "unlisted",
+  "非公開": "gone",
+  "削除": "gone"
+};
+
+// check_status.js が生成した自動判定結果(public/unlisted/gone)
+let autoStatus = {};
+try {
+  autoStatus = JSON.parse(fs.readFileSync("status.json", "utf-8")).videos || {};
+} catch (e) {
+  autoStatus = {};
+}
 
 let existing = [];
 try {
@@ -151,6 +168,14 @@ function parseSongLine(line) {
       continue;
     }
     
+    if (line.startsWith("status:")) {
+      if (videoId) {
+        const raw = line.replace(/^status:\s*/, "").trim();
+        manualStatuses[videoId] = STATUS_MAP[raw] || raw;
+      }
+      continue;
+    }
+    
     const parsed = parseSongLine(line);
     if (!parsed || !videoId || !videoInfo) continue;
 
@@ -159,6 +184,7 @@ function parseSongLine(line) {
       artist: parsed.artist,
       note: parsed.note || "",
       streamNote: "",
+      status: "",
       videoId,
       videoTitle: videoInfo.title,
       date: videoInfo.date,
@@ -168,6 +194,9 @@ function parseSongLine(line) {
 
   results.forEach(item => {
     item.streamNote = streamNotes[item.videoId] || "";
+    item.status = manualStatuses[item.videoId]
+      || autoStatus[item.videoId]
+      || "public";
   });
   
   fs.writeFileSync("data.json", JSON.stringify(results, null, 2));

@@ -67,6 +67,20 @@
   
   </div>
 
+  <div class="note-filter-row">
+    <label class="note-filter">
+      <input type="checkbox" id="filterHikigatari">
+      <span>弾き語りで歌ったことがある曲</span>
+    </label>
+  </div>
+
+  <div class="note-filter-row">
+    <label class="note-filter">
+      <input type="checkbox" id="filterUnplayable">
+      <span>視聴可能のみ</span>
+    </label>
+  </div>
+
   <div class="toolbar">
     <input id="searchSongs" placeholder="曲名・アーティスト名（&&でAND検索可）">
     <button id="clearSongs" class="clear-btn">クリア</button>
@@ -85,13 +99,6 @@
       <option value="asc">昇順</option>
       <option value="desc">降順</option>
     </select>
-  </div>
-
-  <div class="note-filter-row">
-    <label class="note-filter">
-      <input type="checkbox" id="filterHikigatari">
-      <span>弾き語りで歌ったことがある曲</span>
-    </label>
   </div>
 
   <table id="songsTable">
@@ -144,6 +151,20 @@
   
   </div>
 
+  <div class="note-filter-row">
+    <label class="note-filter">
+      <input type="checkbox" id="filterStreamsHikigatari">
+      <span>弾き語り配信のみ</span>
+    </label>
+  </div>
+
+  <div class="note-filter-row">
+    <label class="note-filter">
+      <input type="checkbox" id="filterStreamsUnplayable">
+      <span>視聴可能のみ</span>
+    </label>
+  </div>
+
   <div class="toolbar">
     <input id="searchStreams" placeholder="曲名・アーティスト名（&&でAND検索可）">
     <button id="clearStreams" class="clear-btn">クリア</button>
@@ -156,13 +177,6 @@
       <option value="desc">新しい順</option>
       <option value="asc">古い順</option>
     </select>
-  </div>
-
-  <div class="note-filter-row">
-    <label class="note-filter">
-      <input type="checkbox" id="filterStreamsHikigatari">
-      <span>弾き語り配信のみ</span>
-    </label>
   </div>
 
   <div id="streamsCount"></div>

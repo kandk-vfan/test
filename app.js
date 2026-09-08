@@ -181,8 +181,11 @@ Promise.all([
   fetch("data.json").then(r=>r.json()),
   fetch("../common/yomi.json")
     .then(r => r.ok ? r.json() : {})
+    .catch(() => ({})),
+  fetch("status.json")
+    .then(r => r.ok ? r.json() : {})
     .catch(() => ({}))
-]).then(([dataJson, yomiJson])=>{
+]).then(([dataJson, yomiJson, statusJson])=>{
   YOMI_MAP = yomiJson || {};
 
   data = dataJson.map(d => ({
@@ -190,6 +193,10 @@ Promise.all([
     title: normalize(d.title),
     artist: normalize(d.artist)
   }));
+
+  document.querySelectorAll(".statusCheckedAt").forEach(el=>{
+    el.textContent = formatDateTime(statusJson?.checkedAt);
+  });
 
   document.querySelectorAll(".startDate").forEach(el=>el.value="");
   document.querySelectorAll(".endDate").forEach(el=>el.value="");
@@ -199,6 +206,51 @@ Promise.all([
 
 function key(d){
   return d.title + "||" + d.artist;
+}
+
+function toWatchUrl(videoId, time){
+  const sec = time.split(":").reduce((a,b)=>a*60+Number(b));
+  return `https://www.youtube.com/watch?v=${videoId}&t=${sec}s`;
+}
+
+function statusLabel(status){
+  if(status === "unlisted") return "限定公開のため視聴不可";
+  if(status === "gone") return "非公開または削除のため視聴不可";
+  if(status === "members") return "メンバー限定";
+  return "";
+}
+
+function renderPlayButton(item){
+  const status = item.status || "public";
+
+  if(status === "public"){
+    return `<button class="play-btn" onclick="play('${item.videoId}','${item.time}')">▶</button>`;
+  }
+
+  if(status === "members"){
+    return `<a class="play-btn" href="${toWatchUrl(item.videoId, item.time)}" target="_blank" title="${statusLabel(status)}">▶</a>`;
+  }
+
+  return `<button class="play-btn" disabled title="${statusLabel(status)}">▶</button>`;
+}
+
+function formatDateTime(iso){
+  if(!iso) return "";
+  const d = new Date(iso);
+
+  const parts = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  }).formatToParts(d);
+
+  const get = type => parts.find(p => p.type === type)?.value;
+
+  return `${get("year")}/${get("month")}/${get("day")} ${get("hour")}:${get("minute")}`;
 }
 
 function renderAll(){
@@ -214,7 +266,12 @@ function renderSummary(){
   let src;
 
   if(isStreams){
-    const base = getFilteredData();
+    let base = getFilteredData();
+
+    const unplayableOnly = document.getElementById("filterStreamsUnplayable")?.checked;
+    if(unplayableOnly){
+      base = base.filter(d => (d.status || "public") === "public");
+    }
 
     const hikigatariOnly = document.getElementById("filterStreamsHikigatari")?.checked;
 
@@ -228,7 +285,13 @@ function renderSummary(){
     }
 
   }else{
-    const base = getFilteredData();
+    let base = getFilteredData();
+
+    const unplayableOnly = document.getElementById("filterUnplayable")?.checked;
+    if(unplayableOnly){
+      base = base.filter(d => (d.status || "public") === "public");
+    }
+
     const hikigatariOnly = document.getElementById("filterHikigatari")?.checked;
     if(hikigatariOnly){
       src = base.filter(d =>
@@ -265,31 +328,57 @@ function renderSummary(){
 }
 
 function renderSongs(){
-  const src = getFilteredData();
+  let src = getFilteredData();
+
+  const unplayableOnly = document.getElementById("filterUnplayable")?.checked;
+  if(unplayableOnly){
+    src = src.filter(d => (d.status || "public") === "public");
+  }
 
   const map={};
 
   src.forEach(d=>{
     const k=key(d);
-    if(!map[k]) map[k]={title:d.title,artist:d.artist,notes:new Set(),count:0,latest:d,latestOngen:null,latestHikigatari:null};
+    if(!map[k]) map[k]={
+      title:d.title,artist:d.artist,notes:new Set(),count:0,
+      latest:d,latestPlayable:null,
+      latestOngen:null,latestOngenPlayable:null,
+      latestHikigatari:null,latestHikigatariPlayable:null
+    };
     const note = (d.note || "").replace(/^[\s　]+|[\s　]+$/g, "");
+    const isPlayable = (d.status || "public") === "public";
     map[k].notes.add(note);
     map[k].count++;
     if(new Date(d.date)>new Date(map[k].latest.date)){
       map[k].latest=d;
     }
+    if(isPlayable && (!map[k].latestPlayable || new Date(d.date)>new Date(map[k].latestPlayable.date))){
+      map[k].latestPlayable=d;
+    }
     if(note === "弾き語り"){
       if(!map[k].latestHikigatari || new Date(d.date)>new Date(map[k].latestHikigatari.date)){
         map[k].latestHikigatari=d;
+      }
+      if(isPlayable && (!map[k].latestHikigatariPlayable || new Date(d.date)>new Date(map[k].latestHikigatariPlayable.date))){
+        map[k].latestHikigatariPlayable=d;
       }
     }else{
       if(!map[k].latestOngen || new Date(d.date)>new Date(map[k].latestOngen.date)){
         map[k].latestOngen=d;
       }
+      if(isPlayable && (!map[k].latestOngenPlayable || new Date(d.date)>new Date(map[k].latestOngenPlayable.date))){
+        map[k].latestOngenPlayable=d;
+      }
     }
   });
 
   let arr=Object.values(map);
+
+  arr.forEach(s=>{
+    s.latest = s.latestPlayable || s.latest;
+    s.latestOngen = s.latestOngenPlayable || s.latestOngen;
+    s.latestHikigatari = s.latestHikigatariPlayable || s.latestHikigatari;
+  });
 
   arr.forEach(s=>{
     const notes = s.notes;
@@ -391,16 +480,16 @@ function renderSongs(){
   <div class="song-play-area">
     ${s.displayNote.includes("・") ? `
     <div class="play-group">
-      <button class="play-btn" onclick="play('${s.latestOngen.videoId}','${s.latestOngen.time}')">▶</button>
-      <div class="song-date">${formatDate(s.latestOngen.date)}<br>(音源)</div>
+      ${renderPlayButton(s.latestOngen)}
+      <div class="song-date">${formatDate(s.latestOngen.date)}<br>(音源)${s.latestOngen.status && s.latestOngen.status !== "public" ? `<br>${statusLabel(s.latestOngen.status)}` : ""}</div>
     </div>
     <div class="play-group">
-      <button class="play-btn" onclick="play('${s.latestHikigatari.videoId}','${s.latestHikigatari.time}')">▶</button>
-      <div class="song-date">${formatDate(s.latestHikigatari.date)}<br>(弾き語り)</div>
+      ${renderPlayButton(s.latestHikigatari)}
+      <div class="song-date">${formatDate(s.latestHikigatari.date)}<br>(弾き語り)${s.latestHikigatari.status && s.latestHikigatari.status !== "public" ? `<br>${statusLabel(s.latestHikigatari.status)}` : ""}</div>
     </div>
     ` : `
-    <button class="play-btn" onclick="play('${s.latest.videoId}','${s.latest.time}')">▶</button>
-    <div class="song-date">${formatDate(s.latest.date)}</div>
+    ${renderPlayButton(s.latest)}
+    <div class="song-date">${formatDate(s.latest.date)}${s.latest.status && s.latest.status !== "public" ? `<br>${statusLabel(s.latest.status)}` : ""}</div>
     `}
   </div>
 </td>
@@ -492,7 +581,12 @@ function renderArtists(){
 }
 
 function renderStreams(){
-  const src = getFilteredData();
+  let src = getFilteredData();
+
+  const unplayableOnly = document.getElementById("filterStreamsUnplayable")?.checked;
+  if(unplayableOnly){
+    src = src.filter(d => (d.status || "public") === "public");
+  }
 
   const map={};
 
@@ -569,6 +663,8 @@ function renderStreams(){
         title: s.title,
         note: s.note.trim()
       }));
+
+    const videoStatus = unique[0]?.status || "public";
     
     function isMatch(s){
       if(!keywords[0]) return false;
@@ -598,9 +694,10 @@ function renderStreams(){
 
 <div class="stream-date">${formatDate(v.latestDate)}</div>
 
-${v.streamNote || notes.length ? `
+${v.streamNote || notes.length || videoStatus !== "public" ? `
 <div class="stream-notes">
   <b>備考</b>
+  ${videoStatus !== "public" ? `<div>🔒 ${statusLabel(videoStatus)}</div>` : ""}
   ${v.streamNote ? `<div>${v.streamNote}</div>` : ""}
   ${notes.length ? `
   <ul>
@@ -617,7 +714,7 @@ ${filtered.map((s,i)=>`
 <div class="song-card ${isMatch(s) ? "highlight" : ""}">
 <div class="song-card-head">
 <span class="num">${String(i+1).padStart(2,"0")}</span>
-<button class="play-btn" onclick="play('${vid}','${s.time}')">▶</button>
+${renderPlayButton({videoId: vid, time: s.time, status: s.status})}
 </div>
 <div class="song-card-title">${s.title}</div>
 <div class="song-card-artist">${s.artist}</div>
@@ -767,3 +864,6 @@ document.getElementById("caseSensitiveArtists").addEventListener("change", rende
 
 document.getElementById("filterStreamsHikigatari").addEventListener("change", renderAll);
 document.getElementById("filterHikigatari").addEventListener("change", renderAll);
+
+document.getElementById("filterStreamsUnplayable")?.addEventListener("change", renderAll);
+document.getElementById("filterUnplayable")?.addEventListener("change", renderAll);
