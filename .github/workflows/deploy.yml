@@ -7,6 +7,7 @@ on:
       - kawaui
       - snowshir
       - onlyfortest
+  workflow_dispatch: {}
 
 jobs:
   deploy:
