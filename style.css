@@ -990,3 +990,23 @@ body.hjm-theme .status-note-inline{
   font-size:13px;
   padding-right:20px;
 }
+
+.auth-panel-title{
+  font-weight:700;
+  font-size:14px;
+}
+
+.auth-switch{
+  background:transparent;
+  border:none;
+  color:#93c5fd;
+  font-size:12px;
+  text-decoration:underline;
+  cursor:pointer;
+  padding:4px 0;
+}
+
+.auth-switch:hover{
+  background:transparent;
+  color:#bfdbfe;
+}
