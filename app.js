@@ -36,6 +36,76 @@ function showToast(message){
   }, 1800);
 }
 
+function escapeHtml(str){
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+let myPlaylists = [];
+
+window.onPlaylistsChanged = function(playlists){
+  myPlaylists = playlists;
+};
+
+function closePlaylistMenu(){
+  document.getElementById("activePlaylistMenu")?.remove();
+}
+
+async function addToPlaylistAndNotify(uid, playlistId, playlistName, title, artist){
+  const added = await window.vsongPlaylists.addSongToPlaylist(uid, playlistId, title, artist);
+  showToast(added ? `「${playlistName}」に追加しました` : `「${playlistName}」には既に追加されています`);
+}
+
+function openPlaylistMenu(btn, title, artist){
+  closePlaylistMenu();
+
+  const menu = document.createElement("div");
+  menu.className = "playlist-menu";
+  menu.id = "activePlaylistMenu";
+
+  menu.innerHTML = `
+    ${myPlaylists.map(p => `<button class="playlist-menu-item" data-id="${p.id}">${escapeHtml(p.name)}</button>`).join("")}
+    <button class="playlist-menu-item playlist-menu-new" data-id="__new__">＋ 新規プレイリストを作成</button>
+  `;
+
+  btn.parentElement.appendChild(menu);
+
+  menu.querySelectorAll(".playlist-menu-item").forEach(item => {
+    item.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const id = item.dataset.id;
+      closePlaylistMenu();
+
+      const uid = window.vsongAuth.auth.currentUser.uid;
+
+      if(id === "__new__"){
+        const name = prompt("新しいプレイリスト名を入力してください");
+        if(!name) return;
+        const newId = await window.vsongPlaylists.createPlaylist(uid, name);
+        await addToPlaylistAndNotify(uid, newId, name, title, artist);
+      }else{
+        const name = item.textContent;
+        await addToPlaylistAndNotify(uid, id, name, title, artist);
+      }
+    });
+  });
+
+  setTimeout(() => {
+    document.addEventListener("click", closePlaylistMenu, { once: true });
+  }, 0);
+}
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".playlist-add-btn");
+  if(!btn) return;
+  e.stopPropagation();
+  openPlaylistMenu(btn, btn.dataset.title, btn.dataset.artist);
+});
+
 function toggleBookmark(videoId, videoTitle){
   if(!currentUsername){
     return;
@@ -758,6 +828,9 @@ ${renderPlayButton({videoId: vid, time: s.time, status: s.status})}
 </div>
 <div class="song-card-title">${s.title}</div>
 <div class="song-card-artist">${s.artist}</div>
+${currentUsername ? `
+<button class="playlist-add-btn" data-title="${escapeHtml(s.title)}" data-artist="${escapeHtml(s.artist)}" title="プレイリストに追加">＋</button>
+` : ""}
 </div>`).join("")}
 </div>`;
 
