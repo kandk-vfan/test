@@ -294,6 +294,7 @@ function renderAll(){
   renderSummary();
   renderSongs();
   renderStreams();
+  renderBookmarks();
   renderArtists();
 }
 
@@ -617,13 +618,8 @@ function renderArtists(){
   tbody.innerHTML=html;
 }
 
-function renderStreams(){
-  let src = getFilteredData();
-
-  const unplayableOnly = document.getElementById("filterStreamsUnplayable")?.checked;
-  if(unplayableOnly){
-    src = src.filter(d => (d.status || "public") === "public");
-  }
+function renderStreamList(config){
+  let src = config.getSrc();
 
   const map={};
 
@@ -646,7 +642,7 @@ function renderStreams(){
 
   let arr=Object.entries(map);
 
-  const hikigatariOnly = document.getElementById("filterStreamsHikigatari")?.checked;
+  const hikigatariOnly = document.getElementById(config.hikigatariCheckboxId)?.checked;
   if(hikigatariOnly){
     arr = arr.filter(([vid, v]) =>
       normalize(v.title).includes("弾き語り") ||
@@ -654,7 +650,7 @@ function renderStreams(){
     );
   }
 
-  const order=document.getElementById("sortStreamsOrder").value;
+  const order=document.getElementById(config.sortSelectId).value;
 
   arr.sort((a,b)=>{
     const aDate=a[1].latestDate;
@@ -662,12 +658,12 @@ function renderStreams(){
     return order==="desc"?bDate-aDate:aDate-bDate;
   });
 
-  let keyword = document.getElementById("searchStreams").value;
+  let keyword = document.getElementById(config.searchInputId).value;
   const {mode, keywords} = parseKeyword(keyword);
   
-  const exact = document.getElementById("exactMatchStreams").checked;
-  const caseSensitive = document.getElementById("caseSensitiveStreams").checked;
-  const container=document.getElementById("streamsContainer");
+  const exact = document.getElementById(config.exactId).checked;
+  const caseSensitive = document.getElementById(config.caseId).checked;
+  const container=document.getElementById(config.containerId);
   container.innerHTML="";
 
   let hitCount=0;
@@ -709,71 +705,6 @@ function renderStreams(){
       if(mode === "AND"){
         return keywords.every(k =>
           matchText(s.title, k, exact, caseSensitive) ||
-          matchText(s.artist, k, exact, caseSensitive)
-        );
-      }
-    
-      return matchText(s.title, keywords[0], exact, caseSensitive) ||
-             matchText(s.artist, keywords[0], exact, caseSensitive);
-    }
-    
-    if(keyword && !unique.some(isMatch)) return;
-
-    hitCount++;
-
-    const card=document.createElement("div");
-    card.className="card";
-
-    const bookmarked = bookmarkedIds.has(vid);
-
-    card.innerHTML=`
-<div class="stream-title-row">
-<a href="https://youtube.com/watch?v=${vid}" target="_blank">${v.title}</a>
-${currentUsername ? `
-<button class="bookmark-btn ${bookmarked ? "bookmarked" : ""}" onclick="toggleBookmark('${vid}')" title="${bookmarked ? "ブックマーク済み(クリックで解除)" : "ブックマークに追加"}">
-${bookmarked ? "★" : "☆"}ブックマーク${bookmarked ? "済み" : ""}
-</button>
-` : ""}
-</div>
-
-<div class="stream-date">${formatDate(v.latestDate)}</div>
-
-${v.streamNote || notes.length || videoStatus !== "public" ? `
-<div class="stream-notes">
-  <b>備考</b>
-  ${videoStatus !== "public" ? `<div>🔒 ${statusLabel(videoStatus)}</div>` : ""}
-  ${v.streamNote ? `<div>${v.streamNote}</div>` : ""}
-  ${notes.length ? `
-  <ul>
-  ${notes.map(n => `
-  <li>${n.title}：${n.note}</li>
-  `).join("")}
-  </ul>
-  ` : ""}
-</div>
-` : ""}
-
-<div class="grid">
-${filtered.map((s,i)=>`
-<div class="song-card ${isMatch(s) ? "highlight" : ""}">
-<div class="song-card-head">
-<span class="num">${String(i+1).padStart(2,"0")}</span>
-${renderPlayButton({videoId: vid, time: s.time, status: s.status})}
-</div>
-<div class="song-card-title">${s.title}</div>
-<div class="song-card-artist">${s.artist}</div>
-</div>`).join("")}
-</div>`;
-
-    container.appendChild(card);
-  });
-
-  document.getElementById("streamsCount").innerText = `配信数：${hitCount}件`;
-  
-  if(hitCount===0){
-    container.innerHTML="<p>該当する結果がありません</p>";
-  }
-}
 
 function showTab(id,btn){
   document.querySelectorAll(".section").forEach(el=>el.classList.add("hidden"));
@@ -1045,3 +976,17 @@ document.getElementById("filterHikigatari").addEventListener("change", renderAll
 
 document.getElementById("filterStreamsUnplayable")?.addEventListener("change", renderAll);
 document.getElementById("filterUnplayable")?.addEventListener("change", renderAll);
+
+document.getElementById("searchBookmarks").addEventListener("input", debounce(renderBookmarks));
+document.getElementById("sortBookmarksOrder").addEventListener("change", renderBookmarks);
+document.getElementById("exactMatchBookmarks").addEventListener("change", renderBookmarks);
+document.getElementById("caseSensitiveBookmarks").addEventListener("change", renderBookmarks);
+document.getElementById("filterBookmarksHikigatari").addEventListener("change", renderBookmarks);
+document.getElementById("filterBookmarksUnplayable").addEventListener("change", renderBookmarks);
+
+document.getElementById("clearBookmarks").addEventListener("click", ()=>{
+  document.getElementById("searchBookmarks").value = "";
+  document.getElementById("exactMatchBookmarks").checked = false;
+  document.getElementById("caseSensitiveBookmarks").checked = false;
+  renderBookmarks();
+});
