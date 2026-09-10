@@ -946,7 +946,7 @@ body.hjm-theme .status-note-inline{
   display:flex;
   flex-direction:column;
   gap:8px;
-  width:220px;
+  width:260px;
 }
 
 .auth-close{
@@ -985,4 +985,5 @@ body.hjm-theme .status-note-inline{
 .auth-hint{
   color:#fbbf24;
   font-size:13px;
+  padding-right:20px;
 }
