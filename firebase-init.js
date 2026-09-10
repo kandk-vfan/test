@@ -13,7 +13,8 @@ import {
   setDoc,
   deleteDoc,
   collection,
-  onSnapshot
+  onSnapshot,
+  addDoc
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -89,11 +90,62 @@ function toggleBookmark(uid, videoId, shouldAdd){
 
 window.vsongBookmarks = { toggleBookmark };
 
+function songKey(title, artist){
+  const raw = `${title}||${artist}`;
+  const b64 = btoa(unescape(encodeURIComponent(raw)));
+  return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+let unsubPlaylists = null;
+
+function startPlaylistWatch(uid){
+  unsubPlaylists = onSnapshot(collection(db, "users", uid, "playlists"), snap => {
+    const playlists = [];
+    snap.forEach(d => playlists.push({ id: d.id, name: d.data().name }));
+    window.onPlaylistsChanged?.(playlists);
+  });
+}
+
+function stopPlaylistWatch(){
+  unsubPlaylists?.();
+  unsubPlaylists = null;
+  window.onPlaylistsChanged?.([]);
+}
+
+async function createPlaylist(uid, name){
+  const ref = await addDoc(collection(db, "users", uid, "playlists"), {
+    name,
+    createdAt: new Date().toISOString()
+  });
+  return ref.id;
+}
+
+async function addSongToPlaylist(uid, playlistId, title, artist){
+  const key = songKey(title, artist);
+  const ref = doc(db, "users", uid, "playlists", playlistId, "songs", key);
+
+  const existing = await getDoc(ref);
+  if(existing.exists()){
+    return false;
+  }
+
+  await setDoc(ref, { title, artist, addedAt: new Date().toISOString() });
+  return true;
+}
+
+async function removeSongFromPlaylist(uid, playlistId, title, artist){
+  const key = songKey(title, artist);
+  await deleteDoc(doc(db, "users", uid, "playlists", playlistId, "songs", key));
+}
+
+window.vsongPlaylists = { createPlaylist, addSongToPlaylist, removeSongFromPlaylist };
+
 onAuthStateChanged(auth, async (user) => {
   if(!user){
     window.renderAuthArea?.(null);
     window.handleLogout?.();
     stopBookmarkWatch();
+    stopPlaylistWatch();
     return;
   }
 
@@ -103,4 +155,5 @@ onAuthStateChanged(auth, async (user) => {
   }
   window.renderAuthArea?.(snap.data().username);
   startBookmarkWatch(user.uid);
+  startPlaylistWatch(user.uid);
 });
