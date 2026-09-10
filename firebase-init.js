@@ -138,7 +138,23 @@ async function removeSongFromPlaylist(uid, playlistId, title, artist){
   await deleteDoc(doc(db, "users", uid, "playlists", playlistId, "songs", key));
 }
 
-window.vsongPlaylists = { createPlaylist, addSongToPlaylist, removeSongFromPlaylist };
+async function getPlaylistsContainingSong(uid, playlistIds, title, artist){
+  const key = songKey(title, artist);
+  const results = await Promise.all(
+    playlistIds.map(async (id) => {
+      const snap = await getDoc(doc(db, "users", uid, "playlists", id, "songs", key));
+      return [id, snap.exists()];
+    })
+  );
+  return Object.fromEntries(results);
+}
+
+window.vsongPlaylists = {
+  createPlaylist,
+  addSongToPlaylist,
+  removeSongFromPlaylist,
+  getPlaylistsContainingSong
+};
 
 onAuthStateChanged(auth, async (user) => {
   if(!user){
