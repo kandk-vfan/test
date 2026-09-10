@@ -757,9 +757,15 @@ function formatDate(d){
 }
 
 let currentUsername = null;
+let lastRenderedAuthState = "__unset__";
 
 function renderAuthArea(user){
+  if(user === lastRenderedAuthState){
+    return;
+  }
+  lastRenderedAuthState = user;
   currentUsername = user;
+
   const el = document.getElementById("authArea");
 
   if(user){
