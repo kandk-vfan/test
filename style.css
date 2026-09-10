@@ -936,7 +936,7 @@ body.hjm-theme .status-note-inline{
 }
 
 .auth-panel{
-  position:absolute;
+  position:relative;
   top:calc(100% + 8px);
   right:0;
   background:#111827;
