@@ -774,46 +774,7 @@ function renderAuthArea(user){
       window.vsongAuth.logOut();
     });
   }else{
-    el.innerHTML = `
-      <button id="authTrigger" class="auth-trigger">ログイン</button>
-      <div id="authPanel" class="auth-panel hidden">
-        <button id="authClose" class="auth-close">×</button>
-        <input id="authUsername" placeholder="ユーザー名">
-        <input id="authPassword" type="password" placeholder="パスワード">
-        <button id="loginBtn">ログイン</button>
-        <button id="signupBtn">新規登録</button>
-        <span id="authError" class="auth-error"></span>
-      </div>
-    `;
-
-    function getInputs(){
-      return {
-        username: document.getElementById("authUsername").value.trim(),
-        password: document.getElementById("authPassword").value
-      };
-    }
-
-    function showError(e){
-      document.getElementById("authError").textContent = e.message || "エラーが発生しました";
-    }
-
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-      const { username, password } = getInputs();
-      try{
-        await window.vsongAuth.logIn(username, password);
-      }catch(e){
-        showError(e);
-      }
-    });
-
-    document.getElementById("signupBtn").addEventListener("click", async () => {
-      const { username, password } = getInputs();
-      try{
-        await window.vsongAuth.signUp(username, password);
-      }catch(e){
-        showError(e);
-      }
-    });
+    renderAuthPanelBody(el, "login");
   }
 
   document.getElementById("authTrigger").addEventListener("click", () => {
@@ -822,6 +783,57 @@ function renderAuthArea(user){
 
   document.getElementById("authClose").addEventListener("click", () => {
     document.getElementById("authPanel").classList.add("hidden");
+  });
+}
+
+function renderAuthPanelBody(el, mode){
+  const isSignup = mode === "signup";
+
+  el.innerHTML = `
+    <button id="authTrigger" class="auth-trigger">ログイン</button>
+    <div id="authPanel" class="auth-panel hidden">
+      <button id="authClose" class="auth-close">×</button>
+      <div class="auth-panel-title">${isSignup ? "新規登録" : "ログイン"}</div>
+      <input id="authUsername" placeholder="ユーザー名">
+      <input id="authPassword" type="password" placeholder="パスワード">
+      <button id="authSubmit">${isSignup ? "登録する" : "ログイン"}</button>
+      <button id="authSwitch" class="auth-switch">${isSignup ? "ログインはこちら" : "はじめての方はこちら(新規登録)"}</button>
+      <span id="authError" class="auth-error"></span>
+    </div>
+  `;
+
+  document.getElementById("authTrigger").addEventListener("click", () => {
+    document.getElementById("authPanel").classList.toggle("hidden");
+  });
+
+  document.getElementById("authClose").addEventListener("click", () => {
+    document.getElementById("authPanel").classList.add("hidden");
+  });
+
+  document.getElementById("authSwitch").addEventListener("click", () => {
+    renderAuthPanelBody(el, isSignup ? "login" : "signup");
+    document.getElementById("authPanel").classList.remove("hidden");
+  });
+
+  document.getElementById("authSubmit").addEventListener("click", async () => {
+    const username = document.getElementById("authUsername").value.trim();
+    const password = document.getElementById("authPassword").value;
+    const errorEl = document.getElementById("authError");
+
+    if(!username || !password){
+      errorEl.textContent = "ユーザー名とパスワードを両方入力してください";
+      return;
+    }
+
+    try{
+      if(isSignup){
+        await window.vsongAuth.signUp(username, password);
+      }else{
+        await window.vsongAuth.logIn(username, password);
+      }
+    }catch(e){
+      errorEl.textContent = e.message || "エラーが発生しました";
+    }
   });
 }
 
