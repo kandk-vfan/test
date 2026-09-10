@@ -1088,3 +1088,65 @@ body.hjm-theme .status-note-inline{
   opacity:1;
   transform:translate(-50%, 0);
 }
+
+.song-card{
+  position:relative;
+}
+
+.playlist-add-btn{
+  position:absolute;
+  right:8px;
+  bottom:8px;
+  width:26px;
+  height:26px;
+  padding:0;
+  border-radius:50%;
+  background:#1e293b;
+  border:1px solid #334155;
+  color:#e5e7eb;
+  font-size:16px;
+  line-height:1;
+  cursor:pointer;
+}
+
+.playlist-add-btn:hover{
+  background:#334155;
+}
+
+.playlist-menu{
+  position:absolute;
+  right:8px;
+  bottom:40px;
+  background:#111827;
+  border:1px solid #334155;
+  border-radius:8px;
+  padding:6px;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  min-width:160px;
+  z-index:30;
+}
+
+.playlist-menu-item{
+  text-align:left;
+  background:transparent;
+  border:none;
+  color:#e5e7eb;
+  padding:6px 8px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:13px;
+  white-space:nowrap;
+}
+
+.playlist-menu-item:hover{
+  background:#334155;
+}
+
+.playlist-menu-new{
+  border-top:1px solid #334155;
+  margin-top:2px;
+  padding-top:8px;
+  color:#93c5fd;
+}
