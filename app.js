@@ -705,6 +705,115 @@ function renderStreamList(config){
       if(mode === "AND"){
         return keywords.every(k =>
           matchText(s.title, k, exact, caseSensitive) ||
+          matchText(s.artist, k, exact, caseSensitive)
+        );
+      }
+    
+      return matchText(s.title, keywords[0], exact, caseSensitive) ||
+             matchText(s.artist, keywords[0], exact, caseSensitive);
+    }
+    
+    if(keyword && !unique.some(isMatch)) return;
+
+    hitCount++;
+
+    const card=document.createElement("div");
+    card.className="card";
+
+    const bookmarked = bookmarkedIds.has(vid);
+
+    card.innerHTML=`
+<div class="stream-title-row">
+<a href="https://youtube.com/watch?v=${vid}" target="_blank">${v.title}</a>
+${currentUsername ? `
+<button class="bookmark-btn ${bookmarked ? "bookmarked" : ""}" onclick="toggleBookmark('${vid}')" title="${bookmarked ? "ブックマーク済み(クリックで解除)" : "ブックマークに追加"}">
+${bookmarked ? "★" : "☆"}ブックマーク${bookmarked ? "済み" : ""}
+</button>
+` : ""}
+</div>
+
+<div class="stream-date">${formatDate(v.latestDate)}</div>
+
+${v.streamNote || notes.length || videoStatus !== "public" ? `
+<div class="stream-notes">
+  <b>備考</b>
+  ${videoStatus !== "public" ? `<div>🔒 ${statusLabel(videoStatus)}</div>` : ""}
+  ${v.streamNote ? `<div>${v.streamNote}</div>` : ""}
+  ${notes.length ? `
+  <ul>
+  ${notes.map(n => `
+  <li>${n.title}：${n.note}</li>
+  `).join("")}
+  </ul>
+  ` : ""}
+</div>
+` : ""}
+
+<div class="grid">
+${filtered.map((s,i)=>`
+<div class="song-card ${isMatch(s) ? "highlight" : ""}">
+<div class="song-card-head">
+<span class="num">${String(i+1).padStart(2,"0")}</span>
+${renderPlayButton({videoId: vid, time: s.time, status: s.status})}
+</div>
+<div class="song-card-title">${s.title}</div>
+<div class="song-card-artist">${s.artist}</div>
+</div>`).join("")}
+</div>`;
+
+    container.appendChild(card);
+  });
+
+  document.getElementById(config.countId).innerText = `${config.countLabel}：${hitCount}件`;
+  
+  if(hitCount===0){
+    container.innerHTML = `<p>${src.length===0 ? config.emptyMessage : "該当する結果がありません"}</p>`;
+  }
+}
+
+function renderStreams(){
+  renderStreamList({
+    getSrc: () => {
+      let src = getFilteredData();
+      const unplayableOnly = document.getElementById("filterStreamsUnplayable")?.checked;
+      if(unplayableOnly){
+        src = src.filter(d => (d.status || "public") === "public");
+      }
+      return src;
+    },
+    hikigatariCheckboxId: "filterStreamsHikigatari",
+    searchInputId: "searchStreams",
+    exactId: "exactMatchStreams",
+    caseId: "caseSensitiveStreams",
+    sortSelectId: "sortStreamsOrder",
+    containerId: "streamsContainer",
+    countId: "streamsCount",
+    countLabel: "配信数",
+    emptyMessage: "該当する結果がありません"
+  });
+}
+
+function renderBookmarks(){
+  renderStreamList({
+    getSrc: () => {
+      let src = data.filter(d => bookmarkedIds.has(d.videoId));
+      const unplayableOnly = document.getElementById("filterBookmarksUnplayable")?.checked;
+      if(unplayableOnly){
+        src = src.filter(d => (d.status || "public") === "public");
+      }
+      return src;
+    },
+    hikigatariCheckboxId: "filterBookmarksHikigatari",
+    searchInputId: "searchBookmarks",
+    exactId: "exactMatchBookmarks",
+    caseId: "caseSensitiveBookmarks",
+    sortSelectId: "sortBookmarksOrder",
+    containerId: "bookmarksContainer",
+    countId: "bookmarksCount",
+    countLabel: "ブックマーク数",
+    emptyMessage: "まだブックマークがありません。配信一覧から☆ブックマークを押して追加できます"
+  });
+}
 
 function showTab(id,btn){
   document.querySelectorAll(".section").forEach(el=>el.classList.add("hidden"));
