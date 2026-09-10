@@ -779,17 +779,17 @@ function renderAuthArea(user){
     document.getElementById("logoutBtn").addEventListener("click", () => {
       window.vsongAuth.logOut();
     });
+
+    document.getElementById("authTrigger").addEventListener("click", () => {
+      document.getElementById("authPanel").classList.toggle("hidden");
+    });
+
+    document.getElementById("authClose").addEventListener("click", () => {
+      document.getElementById("authPanel").classList.add("hidden");
+    });
   }else{
     renderAuthPanelBody(el, "login");
   }
-
-  document.getElementById("authTrigger").addEventListener("click", () => {
-    document.getElementById("authPanel").classList.toggle("hidden");
-  });
-
-  document.getElementById("authClose").addEventListener("click", () => {
-    document.getElementById("authPanel").classList.add("hidden");
-  });
 }
 
 function renderAuthPanelBody(el, mode){
