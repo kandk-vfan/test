@@ -949,6 +949,24 @@ body.hjm-theme .status-note-inline{
   width:220px;
 }
 
+.auth-close{
+  position:absolute;
+  top:8px;
+  right:8px;
+  background:transparent;
+  border:none;
+  color:#94a3b8;
+  font-size:16px;
+  line-height:1;
+  padding:4px;
+  cursor:pointer;
+}
+
+.auth-close:hover{
+  background:#334155;
+  border-radius:6px;
+}
+
 .auth-panel.hidden{
   display:none;
 }
