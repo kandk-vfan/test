@@ -64,6 +64,7 @@ window.vsongAuth = { signUp, logIn, logOut, onAuthStateChanged, auth, db };
 onAuthStateChanged(auth, async (user) => {
   if(!user){
     window.renderAuthArea?.(null);
+    window.handleLogout?.();
     return;
   }
 
