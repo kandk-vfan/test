@@ -756,6 +756,64 @@ function formatDate(d){
   return `${date.getFullYear()}/${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}`;
 }
 
+function renderAuthArea(user){
+  const el = document.getElementById("authArea");
+
+  if(user){
+    el.innerHTML = `
+      <span>👤 ${user}さん</span>
+      <button id="logoutBtn">ログアウト</button>
+    `;
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      window.vsongAuth.logOut();
+    });
+    return;
+  }
+
+  el.innerHTML = `
+    <input id="authUsername" placeholder="ユーザー名">
+    <input id="authPassword" type="password" placeholder="パスワード">
+    <button id="loginBtn">ログイン</button>
+    <button id="signupBtn">新規登録</button>
+    <span id="authError" class="auth-error"></span>
+  `;
+
+  function getInputs(){
+    return {
+      username: document.getElementById("authUsername").value.trim(),
+      password: document.getElementById("authPassword").value
+    };
+  }
+
+  function showError(e){
+    document.getElementById("authError").textContent = e.message || "エラーが発生しました";
+  }
+
+  document.getElementById("loginBtn").addEventListener("click", async () => {
+    const { username, password } = getInputs();
+    try{
+      await window.vsongAuth.logIn(username, password);
+    }catch(e){
+      showError(e);
+    }
+  });
+
+  document.getElementById("signupBtn").addEventListener("click", async () => {
+    const { username, password } = getInputs();
+    try{
+      await window.vsongAuth.signUp(username, password);
+    }catch(e){
+      showError(e);
+    }
+  });
+}
+
+window.vsongAuthReady = window.vsongAuth
+  ? Promise.resolve()
+  : new Promise(resolve => {
+      window.addEventListener("vsong-auth-ready", resolve, { once: true });
+    });
+
 document.getElementById("searchSongs").addEventListener("input", debounce(renderSongs));
 document.getElementById("searchStreams").addEventListener("input", debounce(renderStreams));
 document.getElementById("searchArtists").addEventListener("input", debounce(renderArtists));
