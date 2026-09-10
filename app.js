@@ -16,6 +16,43 @@ function getYomi(str, artist){
   return YOMI_MAP[key] || YOMI_MAP[s] || s;
 }
 
+let bookmarkedIds = new Set();
+
+window.onBookmarksChanged = function(ids){
+  bookmarkedIds = ids;
+  renderAll();
+};
+
+function showToast(message){
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.textContent = message;
+  document.body.appendChild(el);
+
+  setTimeout(() => el.classList.add("show"), 10);
+  setTimeout(() => {
+    el.classList.remove("show");
+    setTimeout(() => el.remove(), 300);
+  }, 1800);
+}
+
+function toggleBookmark(videoId, videoTitle){
+  if(!currentUsername){
+    return;
+  }
+
+  const isBookmarked = bookmarkedIds.has(videoId);
+  const uid = window.vsongAuth.auth.currentUser.uid;
+
+  window.vsongBookmarks.toggleBookmark(uid, videoId, !isBookmarked)
+    .then(() => {
+      showToast(isBookmarked ? "ブックマークを解除しました" : "ブックマークに追加しました");
+    })
+    .catch(() => {
+      showToast("エラーが発生しました");
+    });
+}
+
 function matchText(text, keyword, exact, caseSensitive){
   text = normalizeSearch(text);
   keyword = normalizeSearch(keyword);
@@ -687,9 +724,14 @@ function renderStreams(){
     const card=document.createElement("div");
     card.className="card";
 
+    const bookmarked = bookmarkedIds.has(vid);
+
     card.innerHTML=`
 <div class="stream-title-row">
 <a href="https://youtube.com/watch?v=${vid}" target="_blank">${v.title}</a>
+<button class="bookmark-btn ${bookmarked ? "bookmarked" : ""}" onclick="toggleBookmark('${vid}')" title="${bookmarked ? "ブックマーク済み(クリックで解除)" : "ブックマークに追加"}">
+${bookmarked ? "★" : "☆"}ブックマーク${bookmarked ? "済み" : ""}
+</button>
 </div>
 
 <div class="stream-date">${formatDate(v.latestDate)}</div>
