@@ -766,6 +766,7 @@ function renderAuthArea(user){
     el.innerHTML = `
       <button id="authTrigger" class="auth-trigger">👤 ${user}</button>
       <div id="authPanel" class="auth-panel hidden">
+        <button id="authClose" class="auth-close">×</button>
         <button id="logoutBtn">ログアウト</button>
       </div>
     `;
@@ -776,6 +777,7 @@ function renderAuthArea(user){
     el.innerHTML = `
       <button id="authTrigger" class="auth-trigger">ログイン</button>
       <div id="authPanel" class="auth-panel hidden">
+        <button id="authClose" class="auth-close">×</button>
         <input id="authUsername" placeholder="ユーザー名">
         <input id="authPassword" type="password" placeholder="パスワード">
         <button id="loginBtn">ログイン</button>
@@ -816,6 +818,10 @@ function renderAuthArea(user){
 
   document.getElementById("authTrigger").addEventListener("click", () => {
     document.getElementById("authPanel").classList.toggle("hidden");
+  });
+
+  document.getElementById("authClose").addEventListener("click", () => {
+    document.getElementById("authPanel").classList.add("hidden");
   });
 }
 
