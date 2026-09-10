@@ -60,16 +60,26 @@ async function addToPlaylistAndNotify(uid, playlistId, playlistName, title, arti
   showToast(added ? `「${playlistName}」に追加しました` : `「${playlistName}」には既に追加されています`);
 }
 
-function openPlaylistMenu(btn, title, artist){
+async function openPlaylistMenu(btn, title, artist){
   closePlaylistMenu();
+
+  const uid = window.vsongAuth.auth.currentUser.uid;
+  const playlistIds = myPlaylists.map(p => p.id);
+  const containing = await window.vsongPlaylists.getPlaylistsContainingSong(uid, playlistIds, title, artist);
 
   const menu = document.createElement("div");
   menu.className = "playlist-menu";
   menu.id = "activePlaylistMenu";
 
   menu.innerHTML = `
-    ${myPlaylists.map(p => `<button class="playlist-menu-item" data-id="${p.id}">${escapeHtml(p.name)}</button>`).join("")}
-    <button class="playlist-menu-item playlist-menu-new" data-id="__new__">＋ 新規プレイリストを作成</button>
+    <div class="playlist-menu-title">保存先...</div>
+    ${myPlaylists.map(p => `
+      <button class="playlist-menu-item" data-id="${p.id}">
+        <span>${escapeHtml(p.name)}</span>
+        <span class="playlist-menu-check">${containing[p.id] ? "✅" : "☐"}</span>
+      </button>
+    `).join("")}
+    <button class="playlist-menu-item playlist-menu-new" data-id="__new__">＋ 新しいプレイリスト</button>
   `;
 
   btn.parentElement.appendChild(menu);
@@ -78,19 +88,27 @@ function openPlaylistMenu(btn, title, artist){
     item.addEventListener("click", async (e) => {
       e.stopPropagation();
       const id = item.dataset.id;
-      closePlaylistMenu();
-
-      const uid = window.vsongAuth.auth.currentUser.uid;
 
       if(id === "__new__"){
+        closePlaylistMenu();
         const name = prompt("新しいプレイリスト名を入力してください");
         if(!name) return;
         const newId = await window.vsongPlaylists.createPlaylist(uid, name);
         await addToPlaylistAndNotify(uid, newId, name, title, artist);
-      }else{
-        const name = item.textContent;
-        await addToPlaylistAndNotify(uid, id, name, title, artist);
+        return;
       }
+
+      const name = item.querySelector("span").textContent;
+
+      if(containing[id]){
+        await window.vsongPlaylists.removeSongFromPlaylist(uid, id, title, artist);
+        showToast(`「${name}」から外しました`);
+      }else{
+        await window.vsongPlaylists.addSongToPlaylist(uid, id, title, artist);
+        showToast(`「${name}」に追加しました`);
+      }
+
+      closePlaylistMenu();
     });
   });
 
