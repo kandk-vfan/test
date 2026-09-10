@@ -10,7 +10,10 @@ import {
   getFirestore,
   doc,
   getDoc,
-  setDoc
+  setDoc,
+  deleteDoc,
+  collection,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -61,10 +64,36 @@ function logOut(){
 // 他のファイル(app.js)からも使えるように、windowにぶら下げる
 window.vsongAuth = { signUp, logIn, logOut, onAuthStateChanged, auth, db };
 
+let unsubBookmarks = null;
+
+function startBookmarkWatch(uid){
+  unsubBookmarks = onSnapshot(collection(db, "users", uid, "bookmarks"), snap => {
+    const ids = new Set();
+    snap.forEach(d => ids.add(d.id));
+    window.onBookmarksChanged?.(ids);
+  });
+}
+
+function stopBookmarkWatch(){
+  unsubBookmarks?.();
+  unsubBookmarks = null;
+  window.onBookmarksChanged?.(new Set());
+}
+
+function toggleBookmark(uid, videoId, shouldAdd){
+  const ref = doc(db, "users", uid, "bookmarks", videoId);
+  return shouldAdd
+    ? setDoc(ref, { addedAt: new Date().toISOString() })
+    : deleteDoc(ref);
+}
+
+window.vsongBookmarks = { toggleBookmark };
+
 onAuthStateChanged(auth, async (user) => {
   if(!user){
     window.renderAuthArea?.(null);
     window.handleLogout?.();
+    stopBookmarkWatch();
     return;
   }
 
@@ -73,4 +102,5 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
   window.renderAuthArea?.(snap.data().username);
+  startBookmarkWatch(user.uid);
 });
