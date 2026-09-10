@@ -68,6 +68,8 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   const snap = await getDoc(doc(db, "users", user.uid));
-  const username = snap.exists() ? snap.data().username : "(不明)";
-  window.renderAuthArea?.(username);
+  if(!snap.exists()){
+    return;
+  }
+  window.renderAuthArea?.(snap.data().username);
 });
