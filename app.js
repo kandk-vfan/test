@@ -756,56 +756,85 @@ function formatDate(d){
   return `${date.getFullYear()}/${String(date.getMonth()+1).padStart(2,"0")}/${String(date.getDate()).padStart(2,"0")}`;
 }
 
+let currentUsername = null;
+
 function renderAuthArea(user){
+  currentUsername = user;
   const el = document.getElementById("authArea");
 
   if(user){
     el.innerHTML = `
-      <span>👤 ${user}さん</span>
-      <button id="logoutBtn">ログアウト</button>
+      <button id="authTrigger" class="auth-trigger">👤 ${user}</button>
+      <div id="authPanel" class="auth-panel hidden">
+        <button id="logoutBtn">ログアウト</button>
+      </div>
     `;
     document.getElementById("logoutBtn").addEventListener("click", () => {
       window.vsongAuth.logOut();
     });
+  }else{
+    el.innerHTML = `
+      <button id="authTrigger" class="auth-trigger">ログイン</button>
+      <div id="authPanel" class="auth-panel hidden">
+        <input id="authUsername" placeholder="ユーザー名">
+        <input id="authPassword" type="password" placeholder="パスワード">
+        <button id="loginBtn">ログイン</button>
+        <button id="signupBtn">新規登録</button>
+        <span id="authError" class="auth-error"></span>
+      </div>
+    `;
+
+    function getInputs(){
+      return {
+        username: document.getElementById("authUsername").value.trim(),
+        password: document.getElementById("authPassword").value
+      };
+    }
+
+    function showError(e){
+      document.getElementById("authError").textContent = e.message || "エラーが発生しました";
+    }
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const { username, password } = getInputs();
+      try{
+        await window.vsongAuth.logIn(username, password);
+      }catch(e){
+        showError(e);
+      }
+    });
+
+    document.getElementById("signupBtn").addEventListener("click", async () => {
+      const { username, password } = getInputs();
+      try{
+        await window.vsongAuth.signUp(username, password);
+      }catch(e){
+        showError(e);
+      }
+    });
+  }
+
+  document.getElementById("authTrigger").addEventListener("click", () => {
+    document.getElementById("authPanel").classList.toggle("hidden");
+  });
+}
+
+function showProtectedTab(id, btn){
+  if(!currentUsername){
+    const panel = document.getElementById("authPanel");
+    panel.classList.remove("hidden");
+
+    let hint = document.getElementById("authHint");
+    if(!hint){
+      hint = document.createElement("div");
+      hint.id = "authHint";
+      hint.className = "auth-hint";
+      panel.prepend(hint);
+    }
+    hint.textContent = "ログインするとブックマーク・プレイリストが使えます";
     return;
   }
-
-  el.innerHTML = `
-    <input id="authUsername" placeholder="ユーザー名">
-    <input id="authPassword" type="password" placeholder="パスワード">
-    <button id="loginBtn">ログイン</button>
-    <button id="signupBtn">新規登録</button>
-    <span id="authError" class="auth-error"></span>
-  `;
-
-  function getInputs(){
-    return {
-      username: document.getElementById("authUsername").value.trim(),
-      password: document.getElementById("authPassword").value
-    };
-  }
-
-  function showError(e){
-    document.getElementById("authError").textContent = e.message || "エラーが発生しました";
-  }
-
-  document.getElementById("loginBtn").addEventListener("click", async () => {
-    const { username, password } = getInputs();
-    try{
-      await window.vsongAuth.logIn(username, password);
-    }catch(e){
-      showError(e);
-    }
-  });
-
-  document.getElementById("signupBtn").addEventListener("click", async () => {
-    const { username, password } = getInputs();
-    try{
-      await window.vsongAuth.signUp(username, password);
-    }catch(e){
-      showError(e);
-    }
-  });
+  showTab(id, btn);
 }
 
 window.vsongAuthReady = window.vsongAuth
