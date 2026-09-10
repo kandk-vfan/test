@@ -260,7 +260,37 @@
 </div>
 
 <div id="bookmarks" class="section hidden">
-  <p>ブックマーク機能は準備中です。</p>
+
+  <div class="note-filter-row">
+    <label class="note-filter">
+      <input type="checkbox" id="filterBookmarksHikigatari">
+      <span>弾き語り配信のみ</span>
+    </label>
+  </div>
+
+  <div class="note-filter-row">
+    <label class="note-filter">
+      <input type="checkbox" id="filterBookmarksUnplayable">
+      <span>視聴可能のみ</span>
+    </label>
+  </div>
+
+  <div class="toolbar">
+    <input id="searchBookmarks" placeholder="曲名・アーティスト名（&&でAND検索可）">
+    <button id="clearBookmarks" class="clear-btn">クリア</button>
+  
+    <div class="search-options">
+      <label><input type="checkbox" id="exactMatchBookmarks"><span>完全一致</span></label>
+      <label><input type="checkbox" id="caseSensitiveBookmarks"><span>大文字・小文字を区別</span></label>
+    </div>
+    <select id="sortBookmarksOrder">
+      <option value="desc">新しい順</option>
+      <option value="asc">古い順</option>
+    </select>
+  </div>
+
+  <div id="bookmarksCount"></div>
+  <div id="bookmarksContainer"></div>
 </div>
 
 <div id="playlists" class="section hidden">
