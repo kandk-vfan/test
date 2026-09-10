@@ -60,3 +60,14 @@ function logOut(){
 
 // 他のファイル(app.js)からも使えるように、windowにぶら下げる
 window.vsongAuth = { signUp, logIn, logOut, onAuthStateChanged, auth, db };
+
+onAuthStateChanged(auth, async (user) => {
+  if(!user){
+    window.renderAuthArea?.(null);
+    return;
+  }
+
+  const snap = await getDoc(doc(db, "users", user.uid));
+  const username = snap.exists() ? snap.data().username : "(不明)";
+  window.renderAuthArea?.(username);
+});
