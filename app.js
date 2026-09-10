@@ -872,6 +872,18 @@ function showProtectedTab(id, btn){
   showTab(id, btn);
 }
 
+function handleLogout(){
+  const protectedIds = ["bookmarks", "playlists"];
+  const current = protectedIds.find(id => !document.getElementById(id).classList.contains("hidden"));
+
+  if(!current){
+    return;
+  }
+
+  const songsBtn = document.querySelector('.tab-button[onclick*="\'songs\'"]');
+  showTab("songs", songsBtn);
+}
+
 window.vsongAuthReady = window.vsongAuth
   ? Promise.resolve()
   : new Promise(resolve => {
