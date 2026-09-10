@@ -809,6 +809,7 @@ function renderAuthPanelBody(el, mode){
   `;
 
   document.getElementById("authTrigger").addEventListener("click", () => {
+    document.getElementById("authHint")?.remove();
     document.getElementById("authPanel").classList.toggle("hidden");
   });
 
