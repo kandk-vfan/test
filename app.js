@@ -801,12 +801,21 @@ function renderAuthPanelBody(el, mode){
       <button id="authClose" class="auth-close">×</button>
       <div class="auth-panel-title">${isSignup ? "新規登録" : "ログイン"}</div>
       <input id="authUsername" placeholder="ユーザー名">
-      <input id="authPassword" type="password" placeholder="パスワード">
+      <div class="auth-password-row">
+        <input id="authPassword" type="password" placeholder="パスワード">
+        <button id="authTogglePw" type="button" class="auth-toggle-pw">👁</button>
+      </div>
+      ${isSignup ? `<span class="auth-note">パスワードは6文字以上で設定してください</span>` : ""}
       <button id="authSubmit">${isSignup ? "登録する" : "ログイン"}</button>
       <button id="authSwitch" class="auth-switch">${isSignup ? "ログインはこちら" : "はじめての方はこちら(新規登録)"}</button>
       <span id="authError" class="auth-error"></span>
     </div>
   `;
+
+  document.getElementById("authTogglePw").addEventListener("click", () => {
+    const pwInput = document.getElementById("authPassword");
+    pwInput.type = pwInput.type === "password" ? "text" : "password";
+  });
 
   document.getElementById("authTrigger").addEventListener("click", () => {
     document.getElementById("authHint")?.remove();
@@ -838,6 +847,7 @@ function renderAuthPanelBody(el, mode){
       }else{
         await window.vsongAuth.logIn(username, password);
       }
+      renderAuthArea(username);
     }catch(e){
       errorEl.textContent = e.message || "エラーが発生しました";
     }
