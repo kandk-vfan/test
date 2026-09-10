@@ -729,9 +729,11 @@ function renderStreams(){
     card.innerHTML=`
 <div class="stream-title-row">
 <a href="https://youtube.com/watch?v=${vid}" target="_blank">${v.title}</a>
+${currentUsername ? `
 <button class="bookmark-btn ${bookmarked ? "bookmarked" : ""}" onclick="toggleBookmark('${vid}')" title="${bookmarked ? "ブックマーク済み(クリックで解除)" : "ブックマークに追加"}">
 ${bookmarked ? "★" : "☆"}ブックマーク${bookmarked ? "済み" : ""}
 </button>
+` : ""}
 </div>
 
 <div class="stream-date">${formatDate(v.latestDate)}</div>
