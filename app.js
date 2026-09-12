@@ -1400,12 +1400,7 @@ document.getElementById("newPlaylistBtn").addEventListener("click", async () => 
 });
 
 function openSettingsModal(){
-  document.getElementById("settingsUsername").value = "";
-  document.getElementById("settingsEmail").value = "";
-  document.getElementById("settingsNewPassword").value = "";
-  ["settingsUsernameMsg","settingsEmailMsg","settingsPasswordMsg","settingsDeleteMsg"].forEach(id => {
-    document.getElementById(id).textContent = "";
-  });
+  document.getElementById("settingsDeleteMsg").textContent = "";
 
   const hasRecoveryEmail = !window.vsongAuth.auth.currentUser.email.endsWith("@vsong-list.internal");
   document.getElementById("settingsEmailStatus").textContent = hasRecoveryEmail
@@ -1418,60 +1413,6 @@ function openSettingsModal(){
 function closeSettingsModal(){
   document.getElementById("settingsModal").classList.add("hidden");
 }
-
-document.getElementById("settingsUsernameSave").addEventListener("click", async () => {
-  const msg = document.getElementById("settingsUsernameMsg");
-  const newName = document.getElementById("settingsUsername").value.trim();
-
-  if(!newName){
-    msg.textContent = "新しいユーザー名を入力してください";
-    return;
-  }
-
-  try{
-    await window.vsongAccount.changeUsername(newName);
-    msg.textContent = "変更しました";
-    renderAuthArea(newName);
-  }catch(e){
-    msg.textContent = e.message || "エラーが発生しました";
-  }
-});
-
-document.getElementById("settingsEmailSave").addEventListener("click", async () => {
-  const msg = document.getElementById("settingsEmailMsg");
-  const email = document.getElementById("settingsEmail").value.trim();
-
-  if(!email){
-    msg.textContent = "メールアドレスを入力してください";
-    return;
-  }
-
-  try{
-    await window.vsongAccount.setRecoveryEmail(email);
-    msg.textContent = "登録しました";
-    document.getElementById("settingsEmailStatus").textContent = `登録済み: ${email}`;
-  }catch(e){
-    msg.textContent = e.message || "エラーが発生しました";
-  }
-});
-
-document.getElementById("settingsPasswordSave").addEventListener("click", async () => {
-  const msg = document.getElementById("settingsPasswordMsg");
-  const newPassword = document.getElementById("settingsNewPassword").value;
-
-  if(!newPassword || newPassword.length < 6){
-    msg.textContent = "パスワードは6文字以上で入力してください";
-    return;
-  }
-
-  try{
-    await window.vsongAccount.changePassword(newPassword);
-    msg.textContent = "変更しました";
-    document.getElementById("settingsNewPassword").value = "";
-  }catch(e){
-    msg.textContent = e.message || "エラーが発生しました";
-  }
-});
 
 document.getElementById("settingsDeleteBtn").addEventListener("click", async () => {
   const msg = document.getElementById("settingsDeleteMsg");
