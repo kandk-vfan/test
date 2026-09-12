@@ -1266,9 +1266,14 @@ function renderPlaylistMain(){
 
   const uid = window.vsongAuth.auth.currentUser.uid;
 
-  unsubPlaylistSongs = window.vsongPlaylists.watchPlaylistSongs(uid, selectedPlaylistId, songs => {
+  unsubPlaylistSongs = window.vsongPlaylists.watchPlaylistSongs(uid, selectedPlaylistId, allSongs => {
+    const songs = allSongs.filter(s => {
+      const live = data.find(d => d.videoId === s.videoId && d.time === s.time);
+      return (live?.status || "public") === "public";
+    });
+
     if(songs.length === 0){
-      el.innerHTML = `<p class="playlist-empty-hint">まだ曲がありません。曲一覧・配信一覧の＋ボタンから追加できます</p>`;
+      el.innerHTML = `<p class="playlist-empty-hint">${allSongs.length === 0 ? "まだ曲がありません。曲一覧・配信一覧の＋ボタンから追加できます" : "視聴可能な曲がありません(非公開になった曲は自動的に非表示になっています)"}</p>`;
       return;
     }
 
