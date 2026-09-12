@@ -5,12 +5,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  verifyBeforeUpdateEmail,
-  updatePassword,
   deleteUser,
-  sendPasswordResetEmail,
-  reauthenticateWithCredential,
-  EmailAuthProvider
+  sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore,
@@ -44,7 +40,7 @@ function usernameToEmail(username){
 }
 
 // ユーザー名の重複チェック + 新規登録
-async function signUp(username, password){
+async function signUp(username, password, recoveryEmail){
   const usernameRef = doc(db, "usernames", username);
   const existing = await getDoc(usernameRef);
 
@@ -52,11 +48,15 @@ async function signUp(username, password){
     throw new Error("このユーザー名は既に使われています");
   }
 
-  const authEmail = usernameToEmail(username);
+  const authEmail = recoveryEmail || usernameToEmail(username);
   const cred = await createUserWithEmailAndPassword(auth, authEmail, password);
 
   await setDoc(usernameRef, { uid: cred.user.uid, authEmail });
-  await setDoc(doc(db, "users", cred.user.uid), { username, createdAt: new Date().toISOString() });
+  await setDoc(doc(db, "users", cred.user.uid), {
+    username,
+    hasRecoveryEmail: !!recoveryEmail,
+    createdAt: new Date().toISOString()
+  });
 
   return cred.user;
 }
