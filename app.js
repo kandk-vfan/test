@@ -1262,17 +1262,23 @@ function renderPlaylistMain(){
       return;
     }
 
-    el.innerHTML = songs.map(s => `
+    el.innerHTML = songs.map(s => {
+      const live = data.find(d => d.videoId === s.videoId && d.time === s.time);
+      const status = live?.status || "public";
+      const videoDate = live?.date;
+
+      return `
       <div class="playlist-song-row" data-video-id="${s.videoId}" data-time="${s.time}">
-        <span class="num">${renderPlayButton({videoId: s.videoId, time: s.time, status: s.status})}</span>
+        <span class="num">${renderPlayButton({videoId: s.videoId, time: s.time, status})}</span>
         <div class="playlist-song-info">
           <div class="playlist-song-title">${escapeHtml(s.title)}${s.note === "弾き語り" ? "（弾き語り）" : ""}</div>
           <div class="playlist-song-artist">${escapeHtml(s.artist)}</div>
         </div>
-        <div class="playlist-song-date">${formatDate(s.videoDate)}</div>
+        <div class="playlist-song-date">${videoDate ? formatDate(videoDate) : ""}</div>
         <button class="playlist-song-remove" data-title="${escapeHtml(s.title)}" data-artist="${escapeHtml(s.artist)}" data-video-id="${s.videoId}" data-time="${s.time}">削除</button>
       </div>
-    `).join("");
+    `;
+    }).join("");
 
     el.querySelectorAll(".playlist-song-remove").forEach(btn => {
       btn.addEventListener("click", async () => {
