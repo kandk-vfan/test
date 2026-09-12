@@ -1262,13 +1262,17 @@ function renderPlaylistMain(){
       return;
     }
 
-    el.innerHTML = songs.map(s => {
+    el.innerHTML = songs.map((s, i) => {
       const live = data.find(d => d.videoId === s.videoId && d.time === s.time);
       const status = live?.status || "public";
       const videoDate = live?.date;
 
       return `
-      <div class="playlist-song-row" data-video-id="${s.videoId}" data-time="${s.time}">
+      <div class="playlist-song-row" draggable="true" data-key="${s.key}">
+        <div class="playlist-song-reorder">
+          <button class="playlist-move-up" data-key="${s.key}" ${i === 0 ? "disabled" : ""}>▲</button>
+          <button class="playlist-move-down" data-key="${s.key}" ${i === songs.length - 1 ? "disabled" : ""}>▼</button>
+        </div>
         <span class="num">${renderPlayButton({videoId: s.videoId, time: s.time, status})}</span>
         <div class="playlist-song-info">
           <div class="playlist-song-title">${escapeHtml(s.title)}${s.note === "弾き語り" ? "（弾き語り）" : ""}</div>
@@ -1280,11 +1284,65 @@ function renderPlaylistMain(){
     `;
     }).join("");
 
+    const keys = songs.map(s => s.key);
+
+    async function applyReorder(newKeys){
+      await window.vsongPlaylists.reorderPlaylistSongs(uid, selectedPlaylistId, newKeys);
+    }
+
+    el.querySelectorAll(".playlist-move-up").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const i = keys.indexOf(btn.dataset.key);
+        if(i <= 0) return;
+        const newKeys = [...keys];
+        [newKeys[i - 1], newKeys[i]] = [newKeys[i], newKeys[i - 1]];
+        applyReorder(newKeys);
+      });
+    });
+
+    el.querySelectorAll(".playlist-move-down").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const i = keys.indexOf(btn.dataset.key);
+        if(i === -1 || i >= keys.length - 1) return;
+        const newKeys = [...keys];
+        [newKeys[i + 1], newKeys[i]] = [newKeys[i], newKeys[i + 1]];
+        applyReorder(newKeys);
+      });
+    });
+
     el.querySelectorAll(".playlist-song-remove").forEach(btn => {
       btn.addEventListener("click", async () => {
         await window.vsongPlaylists.removeSongFromPlaylist(
           uid, selectedPlaylistId, btn.dataset.title, btn.dataset.artist, btn.dataset.videoId, btn.dataset.time
         );
+      });
+    });
+
+    let dragSrcKey = null;
+
+    el.querySelectorAll(".playlist-song-row").forEach(row => {
+      row.addEventListener("dragstart", () => {
+        dragSrcKey = row.dataset.key;
+        row.classList.add("dragging");
+      });
+
+      row.addEventListener("dragend", () => {
+        row.classList.remove("dragging");
+      });
+
+      row.addEventListener("dragover", (e) => {
+        e.preventDefault();
+      });
+
+      row.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const targetKey = row.dataset.key;
+        if(dragSrcKey === targetKey) return;
+
+        const newKeys = keys.filter(k => k !== dragSrcKey);
+        const targetIndex = newKeys.indexOf(targetKey);
+        newKeys.splice(targetIndex, 0, dragSrcKey);
+        applyReorder(newKeys);
       });
     });
   });
