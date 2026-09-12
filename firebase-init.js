@@ -130,7 +130,10 @@ async function addSongToPlaylist(uid, playlistId, title, artist, videoId, time, 
     return false;
   }
 
-  await setDoc(ref, { title, artist, videoId, time, note: note || "", addedAt: new Date().toISOString() });
+  const snap = await getDocs(collection(db, "users", uid, "playlists", playlistId, "songs"));
+  const maxOrder = snap.docs.reduce((max, d) => Math.max(max, d.data().order ?? 0), 0);
+
+  await setDoc(ref, { title, artist, videoId, time, note: note || "", order: maxOrder + 1, addedAt: new Date().toISOString() });
   return true;
 }
 
@@ -163,9 +166,16 @@ async function deletePlaylist(uid, playlistId){
 function watchPlaylistSongs(uid, playlistId, callback){
   return onSnapshot(collection(db, "users", uid, "playlists", playlistId, "songs"), snap => {
     const songs = [];
-    snap.forEach(d => songs.push(d.data()));
+    snap.forEach(d => songs.push({ ...d.data(), key: d.id }));
+    songs.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     callback(songs);
   });
+}
+
+async function reorderPlaylistSongs(uid, playlistId, orderedKeys){
+  await Promise.all(orderedKeys.map((key, i) =>
+    setDoc(doc(db, "users", uid, "playlists", playlistId, "songs", key), { order: i }, { merge: true })
+  ));
 }
 
 window.vsongPlaylists = {
@@ -175,7 +185,8 @@ window.vsongPlaylists = {
   getPlaylistsContainingSong,
   renamePlaylist,
   deletePlaylist,
-  watchPlaylistSongs
+  watchPlaylistSongs,
+  reorderPlaylistSongs
 };
 
 onAuthStateChanged(auth, async (user) => {
