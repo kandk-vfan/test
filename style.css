@@ -1263,3 +1263,28 @@ body.hjm-theme .status-note-inline{
 .playlist-song-remove{
   flex-shrink:0;
 }
+
+.playlist-song-reorder{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+.playlist-song-reorder button{
+  padding:2px 6px;
+  font-size:10px;
+  line-height:1;
+}
+
+.playlist-song-reorder button:disabled{
+  opacity:0.3;
+  cursor:not-allowed;
+}
+
+.playlist-song-row{
+  cursor:grab;
+}
+
+.playlist-song-row.dragging{
+  opacity:0.4;
+}
