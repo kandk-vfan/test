@@ -5,7 +5,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateEmail,
+  verifyBeforeUpdateEmail,
   updatePassword,
   deleteUser,
   sendPasswordResetEmail,
@@ -125,14 +125,9 @@ async function changeUsername(newUsername){
 }
 
 async function setRecoveryEmail(newEmail){
-  await updateEmail(auth.currentUser, newEmail);
-
-  const uid = auth.currentUser.uid;
-  const snap = await getDoc(doc(db, "users", uid));
-  const username = snap.data().username;
-
-  await setDoc(doc(db, "usernames", username), { uid, authEmail: newEmail }, { merge: true });
-  await setDoc(doc(db, "users", uid), { hasRecoveryEmail: true }, { merge: true });
+  // 確認メールを送るだけで、実際にログイン用メールアドレスとして
+  // 反映されるのは、本人がメール内のリンクをクリックした後
+  await verifyBeforeUpdateEmail(auth.currentUser, newEmail);
 }
 
 async function changePassword(newPassword){
