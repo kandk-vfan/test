@@ -958,11 +958,17 @@ function renderAuthArea(user){
       <button id="authTrigger" class="auth-trigger">👤 ${user}</button>
       <div id="authPanel" class="auth-panel hidden">
         <button id="authClose" class="auth-close">×</button>
+        <button id="openSettingsBtn">設定</button>
         <button id="logoutBtn">ログアウト</button>
       </div>
     `;
     document.getElementById("logoutBtn").addEventListener("click", () => {
       window.vsongAuth.logOut();
+    });
+
+    document.getElementById("openSettingsBtn").addEventListener("click", () => {
+      document.getElementById("authPanel").classList.add("hidden");
+      openSettingsModal();
     });
 
     document.getElementById("authTrigger").addEventListener("click", () => {
@@ -1391,4 +1397,93 @@ document.getElementById("newPlaylistBtn").addEventListener("click", async () => 
   const uid = window.vsongAuth.auth.currentUser.uid;
   const newId = await window.vsongPlaylists.createPlaylist(uid, name);
   selectPlaylist(newId);
+});
+
+function openSettingsModal(){
+  document.getElementById("settingsUsername").value = "";
+  document.getElementById("settingsEmail").value = "";
+  document.getElementById("settingsNewPassword").value = "";
+  ["settingsUsernameMsg","settingsEmailMsg","settingsPasswordMsg","settingsDeleteMsg"].forEach(id => {
+    document.getElementById(id).textContent = "";
+  });
+
+  const hasRecoveryEmail = !window.vsongAuth.auth.currentUser.email.endsWith("@vsong-list.internal");
+  document.getElementById("settingsEmailStatus").textContent = hasRecoveryEmail
+    ? `登録済み: ${window.vsongAuth.auth.currentUser.email}`
+    : "未登録";
+
+  document.getElementById("settingsModal").classList.remove("hidden");
+}
+
+function closeSettingsModal(){
+  document.getElementById("settingsModal").classList.add("hidden");
+}
+
+document.getElementById("settingsUsernameSave").addEventListener("click", async () => {
+  const msg = document.getElementById("settingsUsernameMsg");
+  const newName = document.getElementById("settingsUsername").value.trim();
+
+  if(!newName){
+    msg.textContent = "新しいユーザー名を入力してください";
+    return;
+  }
+
+  try{
+    await window.vsongAccount.changeUsername(newName);
+    msg.textContent = "変更しました";
+    renderAuthArea(newName);
+  }catch(e){
+    msg.textContent = e.message || "エラーが発生しました";
+  }
+});
+
+document.getElementById("settingsEmailSave").addEventListener("click", async () => {
+  const msg = document.getElementById("settingsEmailMsg");
+  const email = document.getElementById("settingsEmail").value.trim();
+
+  if(!email){
+    msg.textContent = "メールアドレスを入力してください";
+    return;
+  }
+
+  try{
+    await window.vsongAccount.setRecoveryEmail(email);
+    msg.textContent = "登録しました";
+    document.getElementById("settingsEmailStatus").textContent = `登録済み: ${email}`;
+  }catch(e){
+    msg.textContent = e.message || "エラーが発生しました";
+  }
+});
+
+document.getElementById("settingsPasswordSave").addEventListener("click", async () => {
+  const msg = document.getElementById("settingsPasswordMsg");
+  const newPassword = document.getElementById("settingsNewPassword").value;
+
+  if(!newPassword || newPassword.length < 6){
+    msg.textContent = "パスワードは6文字以上で入力してください";
+    return;
+  }
+
+  try{
+    await window.vsongAccount.changePassword(newPassword);
+    msg.textContent = "変更しました";
+    document.getElementById("settingsNewPassword").value = "";
+  }catch(e){
+    msg.textContent = e.message || "エラーが発生しました";
+  }
+});
+
+document.getElementById("settingsDeleteBtn").addEventListener("click", async () => {
+  const msg = document.getElementById("settingsDeleteMsg");
+
+  if(!confirm("本当にアカウントを削除しますか？ブックマーク・リストなど全てのデータが完全に削除され、元に戻せません。")){
+    return;
+  }
+
+  try{
+    await window.vsongAccount.deleteAccount();
+    closeSettingsModal();
+  }catch(e){
+    msg.textContent = e.message || "エラーが発生しました";
+  }
 });
