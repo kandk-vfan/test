@@ -55,11 +55,6 @@ function closePlaylistMenu(){
   document.getElementById("activePlaylistMenu")?.remove();
 }
 
-async function addToPlaylistAndNotify(uid, playlistId, playlistName, title, artist){
-  const added = await window.vsongPlaylists.addSongToPlaylist(uid, playlistId, title, artist);
-  showToast(added ? `「${playlistName}」に追加しました` : `「${playlistName}」には既に追加されています`);
-}
-
 async function openPlaylistMenu(btn, title, artist, videoId, time, note){
   closePlaylistMenu();
 
