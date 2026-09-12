@@ -102,7 +102,8 @@ let unsubPlaylists = null;
 function startPlaylistWatch(uid){
   unsubPlaylists = onSnapshot(collection(db, "users", uid, "playlists"), snap => {
     const playlists = [];
-    snap.forEach(d => playlists.push({ id: d.id, name: d.data().name }));
+    snap.forEach(d => playlists.push({ id: d.id, name: d.data().name, createdAt: d.data().createdAt }));
+    playlists.sort((a, b) => (a.createdAt || "").localeCompare(b.createdAt || ""));
     window.onPlaylistsChanged?.(playlists);
   });
 }
