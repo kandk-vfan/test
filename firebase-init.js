@@ -104,41 +104,6 @@ function toggleBookmark(uid, videoId, shouldAdd){
 
 window.vsongBookmarks = { toggleBookmark };
 
-async function changeUsername(newUsername){
-  const uid = auth.currentUser.uid;
-
-  const newRef = doc(db, "usernames", newUsername);
-  const existing = await getDoc(newRef);
-  if(existing.exists()){
-    throw new Error("このユーザー名は既に使われています");
-  }
-
-  const oldSnap = await getDoc(doc(db, "users", uid));
-  const oldUsername = oldSnap.data().username;
-  const authEmail = auth.currentUser.email;
-
-  await setDoc(newRef, { uid, authEmail });
-  await setDoc(doc(db, "users", uid), { username: newUsername }, { merge: true });
-  await deleteDoc(doc(db, "usernames", oldUsername));
-
-  return newUsername;
-}
-
-async function setRecoveryEmail(newEmail){
-  // 確認メールを送るだけで、実際にログイン用メールアドレスとして
-  // 反映されるのは、本人がメール内のリンクをクリックした後
-  await verifyBeforeUpdateEmail(auth.currentUser, newEmail);
-}
-
-async function changePassword(newPassword){
-  await updatePassword(auth.currentUser, newPassword);
-}
-
-async function reauth(password){
-  const cred = EmailAuthProvider.credential(auth.currentUser.email, password);
-  await reauthenticateWithCredential(auth.currentUser, cred);
-}
-
 async function sendPasswordReset(username){
   const snap = await getDoc(doc(db, "usernames", username));
   if(!snap.exists()){
@@ -177,10 +142,6 @@ async function deleteAccount(){
 }
 
 window.vsongAccount = {
-  changeUsername,
-  setRecoveryEmail,
-  changePassword,
-  reauth,
   sendPasswordReset,
   deleteAccount
 };
