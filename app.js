@@ -997,6 +997,10 @@ function renderAuthPanelBody(el, mode){
         <button id="authTogglePw" type="button" class="auth-toggle-pw">👁</button>
       </div>
       ${isSignup ? `<span class="auth-note">パスワードは6文字以上で設定してください</span>` : ""}
+      ${isSignup ? `
+      <input id="authEmail" type="email" placeholder="メールアドレス(任意)">
+      <span class="auth-note">パスワードを忘れた際の再発行に使えます。後から登録はできません</span>
+      ` : ""}
       <button id="authSubmit">${isSignup ? "登録する" : "ログイン"}</button>
       <button id="authSwitch" class="auth-switch">${isSignup ? "ログインはこちら" : "はじめての方はこちら(新規登録)"}</button>
       <span id="authError" class="auth-error"></span>
@@ -1034,7 +1038,8 @@ function renderAuthPanelBody(el, mode){
 
     try{
       if(isSignup){
-        await window.vsongAuth.signUp(username, password);
+        const email = document.getElementById("authEmail").value.trim();
+        await window.vsongAuth.signUp(username, password, email || null);
       }else{
         await window.vsongAuth.logIn(username, password);
       }
