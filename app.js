@@ -60,12 +60,12 @@ async function addToPlaylistAndNotify(uid, playlistId, playlistName, title, arti
   showToast(added ? `「${playlistName}」に追加しました` : `「${playlistName}」には既に追加されています`);
 }
 
-async function openPlaylistMenu(btn, title, artist){
+async function openPlaylistMenu(btn, title, artist, videoId, time, note){
   closePlaylistMenu();
 
   const uid = window.vsongAuth.auth.currentUser.uid;
   const playlistIds = myPlaylists.map(p => p.id);
-  const containing = await window.vsongPlaylists.getPlaylistsContainingSong(uid, playlistIds, title, artist);
+  const containing = await window.vsongPlaylists.getPlaylistsContainingSong(uid, playlistIds, title, artist, videoId, time);
 
   const menu = document.createElement("div");
   menu.className = "playlist-menu";
@@ -79,7 +79,7 @@ async function openPlaylistMenu(btn, title, artist){
         <span class="playlist-menu-check">${containing[p.id] ? "✅" : "☐"}</span>
       </button>
     `).join("")}
-    <button class="playlist-menu-item playlist-menu-new" data-id="__new__">＋ 新しいプレイリスト</button>
+    <button class="playlist-menu-item playlist-menu-new" data-id="__new__">＋ 新しいリスト</button>
   `;
 
   btn.parentElement.appendChild(menu);
@@ -91,20 +91,21 @@ async function openPlaylistMenu(btn, title, artist){
 
       if(id === "__new__"){
         closePlaylistMenu();
-        const name = prompt("新しいプレイリスト名を入力してください");
+        const name = prompt("新しいリスト名を入力してください");
         if(!name) return;
         const newId = await window.vsongPlaylists.createPlaylist(uid, name);
-        await addToPlaylistAndNotify(uid, newId, name, title, artist);
+        await window.vsongPlaylists.addSongToPlaylist(uid, newId, title, artist, videoId, time, note);
+        showToast(`「${name}」に追加しました`);
         return;
       }
 
       const name = item.querySelector("span").textContent;
 
       if(containing[id]){
-        await window.vsongPlaylists.removeSongFromPlaylist(uid, id, title, artist);
+        await window.vsongPlaylists.removeSongFromPlaylist(uid, id, title, artist, videoId, time);
         showToast(`「${name}」から外しました`);
       }else{
-        await window.vsongPlaylists.addSongToPlaylist(uid, id, title, artist);
+        await window.vsongPlaylists.addSongToPlaylist(uid, id, title, artist, videoId, time, note);
         showToast(`「${name}」に追加しました`);
       }
 
@@ -121,7 +122,7 @@ document.addEventListener("click", (e) => {
   const btn = e.target.closest(".playlist-add-btn");
   if(!btn) return;
   e.stopPropagation();
-  openPlaylistMenu(btn, btn.dataset.title, btn.dataset.artist);
+  openPlaylistMenu(btn, btn.dataset.title, btn.dataset.artist, btn.dataset.videoId, btn.dataset.time, btn.dataset.note);
 });
 
 function toggleBookmark(videoId, videoTitle){
@@ -847,7 +848,7 @@ ${renderPlayButton({videoId: vid, time: s.time, status: s.status})}
 <div class="song-card-title">${s.title}</div>
 <div class="song-card-artist">${s.artist}</div>
 ${currentUsername ? `
-<button class="playlist-add-btn" data-title="${escapeHtml(s.title)}" data-artist="${escapeHtml(s.artist)}" title="プレイリストに追加">＋</button>
+<button class="playlist-add-btn" data-title="${escapeHtml(s.title)}" data-artist="${escapeHtml(s.artist)}" data-video-id="${vid}" data-time="${s.time}" data-note="${escapeHtml(s.note || "")}" title="プレイリストに追加">＋</button>
 ` : ""}
 </div>`).join("")}
 </div>`;
