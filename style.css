@@ -1309,3 +1309,8 @@ body.hjm-theme .status-note-inline{
 .playlist-song-row.drag-over-bottom{
   box-shadow:inset 0 -2px 0 0 #3b82f6;
 }
+
+.play-group .playlist-add-btn{
+  position:static;
+  margin-top:4px;
+}
