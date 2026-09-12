@@ -1164,3 +1164,102 @@ body.hjm-theme .status-note-inline{
   padding-top:8px;
   color:#93c5fd;
 }
+
+.playlist-layout{
+  display:flex;
+  gap:20px;
+  align-items:flex-start;
+}
+
+.playlist-sidebar{
+  width:240px;
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.new-playlist-btn{
+  width:100%;
+}
+
+.playlist-sidebar-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:10px 12px;
+  border-radius:8px;
+  border:1px solid #334155;
+  background:#111827;
+  cursor:pointer;
+}
+
+.playlist-sidebar-item:hover{
+  background:#1e293b;
+}
+
+.playlist-sidebar-item.active{
+  border-color:#3b82f6;
+  background:#1e293b;
+}
+
+.playlist-sidebar-name{
+  flex:1;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  cursor:pointer;
+}
+
+.playlist-sidebar-actions{
+  display:flex;
+  gap:4px;
+  flex-shrink:0;
+}
+
+.playlist-sidebar-actions button{
+  padding:4px 6px;
+  font-size:12px;
+}
+
+.playlist-main{
+  flex:1;
+  min-width:0;
+}
+
+.playlist-empty-hint{
+  color:#94a3b8;
+}
+
+.playlist-song-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 12px;
+  border-bottom:1px solid #334155;
+}
+
+.playlist-song-info{
+  flex:1;
+  min-width:0;
+}
+
+.playlist-song-title{
+  font-weight:600;
+}
+
+.playlist-song-artist{
+  font-size:13px;
+  color:#94a3b8;
+}
+
+.playlist-song-date{
+  font-size:12px;
+  color:#94a3b8;
+  white-space:nowrap;
+}
+
+.playlist-song-remove{
+  flex-shrink:0;
+}
