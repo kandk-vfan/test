@@ -294,7 +294,15 @@
 </div>
 
 <div id="playlists" class="section hidden">
-  <p>プレイリスト機能は準備中です。</p>
+  <div class="playlist-layout">
+    <div class="playlist-sidebar">
+      <button id="newPlaylistBtn" class="new-playlist-btn">＋ 新しいリストを作成</button>
+      <div id="playlistSidebarList"></div>
+    </div>
+    <div class="playlist-main" id="playlistMain">
+      <p class="playlist-empty-hint">左からリストを選んでください</p>
+    </div>
+  </div>
 </div>
 
 <div id="modal" class="hidden">
