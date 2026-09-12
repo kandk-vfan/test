@@ -1311,3 +1311,64 @@ body.hjm-theme .status-note-inline{
   position:static;
   margin-top:4px;
 }
+
+.settings-content{
+  width:min(480px, 92vw);
+  background:#111827;
+  border-radius:12px;
+  padding:24px;
+  position:relative;
+  max-height:85vh;
+  overflow-y:auto;
+}
+
+.modal-close{
+  position:absolute;
+  top:12px;
+  right:12px;
+  background:transparent;
+  border:none;
+  color:#94a3b8;
+  font-size:20px;
+  cursor:pointer;
+}
+
+.settings-section{
+  margin-top:20px;
+  padding-top:20px;
+  border-top:1px solid #334155;
+}
+
+.settings-section:first-of-type{
+  margin-top:12px;
+  padding-top:0;
+  border-top:none;
+}
+
+.settings-section h3{
+  margin:0 0 8px;
+  font-size:15px;
+}
+
+.settings-desc{
+  font-size:13px;
+  color:#94a3b8;
+  margin:0 0 8px;
+}
+
+.settings-msg{
+  display:block;
+  font-size:13px;
+  margin-top:6px;
+  color:#94a3b8;
+}
+
+.settings-danger button{
+  background:#7f1d1d;
+  border-color:#b91c1c;
+  color:#fecaca;
+}
+
+.settings-danger button:hover{
+  background:#991b1b;
+}
