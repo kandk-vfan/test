@@ -78,7 +78,12 @@ async function openPlaylistMenu(btn, title, artist, videoId, time, note){
     <button class="playlist-menu-item playlist-menu-new" data-id="__new__">＋ 新しいリスト</button>
   `;
 
-  btn.parentElement.appendChild(menu);
+  document.body.appendChild(menu);
+
+  const rect = btn.getBoundingClientRect();
+  menu.style.position = "fixed";
+  menu.style.left = `${rect.left}px`;
+  menu.style.top = `${rect.bottom + 4}px`;
 
   menu.querySelectorAll(".playlist-menu-item").forEach(item => {
     item.addEventListener("click", async (e) => {
