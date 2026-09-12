@@ -49,6 +49,7 @@ let myPlaylists = [];
 
 window.onPlaylistsChanged = function(playlists){
   myPlaylists = playlists;
+  renderPlaylistSidebar();
 };
 
 function closePlaylistMenu(){
@@ -1185,4 +1186,109 @@ document.getElementById("clearBookmarks").addEventListener("click", ()=>{
   document.getElementById("exactMatchBookmarks").checked = false;
   document.getElementById("caseSensitiveBookmarks").checked = false;
   renderBookmarks();
+});
+
+let selectedPlaylistId = null;
+let unsubPlaylistSongs = null;
+
+function renderPlaylistSidebar(){
+  const el = document.getElementById("playlistSidebarList");
+
+  el.innerHTML = myPlaylists.map(p => `
+    <div class="playlist-sidebar-item ${p.id === selectedPlaylistId ? "active" : ""}" data-id="${p.id}">
+      <span class="playlist-sidebar-name" data-id="${p.id}">${escapeHtml(p.name)}</span>
+      <div class="playlist-sidebar-actions">
+        <button class="playlist-rename-btn" data-id="${p.id}" title="名前を変更">✎</button>
+        <button class="playlist-delete-btn" data-id="${p.id}" title="削除">🗑</button>
+      </div>
+    </div>
+  `).join("");
+
+  el.querySelectorAll(".playlist-sidebar-name").forEach(nameEl => {
+    nameEl.addEventListener("click", () => selectPlaylist(nameEl.dataset.id));
+  });
+
+  el.querySelectorAll(".playlist-rename-btn").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const playlist = myPlaylists.find(p => p.id === btn.dataset.id);
+      const newName = prompt("新しい名前を入力してください", playlist.name);
+      if(!newName || newName === playlist.name) return;
+
+      const uid = window.vsongAuth.auth.currentUser.uid;
+      await window.vsongPlaylists.renamePlaylist(uid, btn.dataset.id, newName);
+    });
+  });
+
+  el.querySelectorAll(".playlist-delete-btn").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const playlist = myPlaylists.find(p => p.id === btn.dataset.id);
+      if(!confirm(`「${playlist.name}」を削除しますか？中の曲もすべて削除されます。`)) return;
+
+      const uid = window.vsongAuth.auth.currentUser.uid;
+      await window.vsongPlaylists.deletePlaylist(uid, btn.dataset.id);
+
+      if(selectedPlaylistId === btn.dataset.id){
+        selectedPlaylistId = null;
+        renderPlaylistMain();
+      }
+    });
+  });
+}
+
+function selectPlaylist(id){
+  selectedPlaylistId = id;
+  renderPlaylistSidebar();
+  renderPlaylistMain();
+}
+
+function renderPlaylistMain(){
+  const el = document.getElementById("playlistMain");
+
+  unsubPlaylistSongs?.();
+  unsubPlaylistSongs = null;
+
+  if(!selectedPlaylistId){
+    el.innerHTML = `<p class="playlist-empty-hint">左からリストを選んでください</p>`;
+    return;
+  }
+
+  const uid = window.vsongAuth.auth.currentUser.uid;
+
+  unsubPlaylistSongs = window.vsongPlaylists.watchPlaylistSongs(uid, selectedPlaylistId, songs => {
+    if(songs.length === 0){
+      el.innerHTML = `<p class="playlist-empty-hint">まだ曲がありません。曲一覧・配信一覧の＋ボタンから追加できます</p>`;
+      return;
+    }
+
+    el.innerHTML = songs.map(s => `
+      <div class="playlist-song-row" data-video-id="${s.videoId}" data-time="${s.time}">
+        <span class="num">${renderPlayButton({videoId: s.videoId, time: s.time, status: s.status})}</span>
+        <div class="playlist-song-info">
+          <div class="playlist-song-title">${escapeHtml(s.title)}${s.note === "弾き語り" ? "（弾き語り）" : ""}</div>
+          <div class="playlist-song-artist">${escapeHtml(s.artist)}</div>
+        </div>
+        <div class="playlist-song-date">${formatDate(s.videoDate)}</div>
+        <button class="playlist-song-remove" data-title="${escapeHtml(s.title)}" data-artist="${escapeHtml(s.artist)}" data-video-id="${s.videoId}" data-time="${s.time}">削除</button>
+      </div>
+    `).join("");
+
+    el.querySelectorAll(".playlist-song-remove").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        await window.vsongPlaylists.removeSongFromPlaylist(
+          uid, selectedPlaylistId, btn.dataset.title, btn.dataset.artist, btn.dataset.videoId, btn.dataset.time
+        );
+      });
+    });
+  });
+}
+
+document.getElementById("newPlaylistBtn").addEventListener("click", async () => {
+  const name = prompt("新しいリスト名を入力してください");
+  if(!name) return;
+
+  const uid = window.vsongAuth.auth.currentUser.uid;
+  const newId = await window.vsongPlaylists.createPlaylist(uid, name);
+  selectPlaylist(newId);
 });
