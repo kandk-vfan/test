@@ -853,9 +853,7 @@ ${renderPlayButton({videoId: vid, time: s.time, status: s.status})}
 </div>
 <div class="song-card-title">${s.title}</div>
 <div class="song-card-artist">${s.artist}</div>
-${currentUsername ? `
-<button class="playlist-add-btn" data-title="${escapeHtml(s.title)}" data-artist="${escapeHtml(s.artist)}" data-video-id="${vid}" data-time="${s.time}" data-note="${escapeHtml(s.note || "")}" title="プレイリストに追加">＋</button>
-` : ""}
+${renderPlaylistAddButton({ title: s.title, artist: s.artist, videoId: vid, time: s.time, note: s.note, status: s.status })}
 </div>`).join("")}
 </div>`;
 
