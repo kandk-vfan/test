@@ -1003,6 +1003,7 @@ function renderAuthPanelBody(el, mode){
       ` : ""}
       <button id="authSubmit">${isSignup ? "登録する" : "ログイン"}</button>
       <button id="authSwitch" class="auth-switch">${isSignup ? "ログインはこちら" : "はじめての方はこちら(新規登録)"}</button>
+      ${!isSignup ? `<button id="authForgotPw" class="auth-switch">パスワードを忘れた方はこちら</button>` : ""}
       <span id="authError" class="auth-error"></span>
     </div>
   `;
@@ -1024,6 +1025,26 @@ function renderAuthPanelBody(el, mode){
   document.getElementById("authSwitch").addEventListener("click", () => {
     renderAuthPanelBody(el, isSignup ? "login" : "signup");
     document.getElementById("authPanel").classList.remove("hidden");
+  });
+
+  document.getElementById("authForgotPw")?.addEventListener("click", async () => {
+    const username = document.getElementById("authUsername").value.trim();
+    const errorEl = document.getElementById("authError");
+
+    if(!username){
+      errorEl.textContent = "ユーザー名を入力してから押してください";
+      return;
+    }
+
+    try{
+      await window.vsongAccount.sendPasswordReset(username);
+      errorEl.textContent = "";
+      errorEl.style.color = "#4ade80";
+      errorEl.textContent = "登録済みのメールアドレスに再設定用のメールを送りました";
+    }catch(e){
+      errorEl.style.color = "";
+      errorEl.textContent = e.message || "エラーが発生しました";
+    }
   });
 
   document.getElementById("authSubmit").addEventListener("click", async () => {
