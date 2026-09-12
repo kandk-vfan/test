@@ -14,7 +14,8 @@ import {
   deleteDoc,
   collection,
   onSnapshot,
-  addDoc
+  addDoc,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -149,11 +150,32 @@ async function getPlaylistsContainingSong(uid, playlistIds, title, artist, video
   return Object.fromEntries(results);
 }
 
+async function renamePlaylist(uid, playlistId, name){
+  await setDoc(doc(db, "users", uid, "playlists", playlistId), { name }, { merge: true });
+}
+
+async function deletePlaylist(uid, playlistId){
+  const songsSnap = await getDocs(collection(db, "users", uid, "playlists", playlistId, "songs"));
+  await Promise.all(songsSnap.docs.map(d => deleteDoc(d.ref)));
+  await deleteDoc(doc(db, "users", uid, "playlists", playlistId));
+}
+
+function watchPlaylistSongs(uid, playlistId, callback){
+  return onSnapshot(collection(db, "users", uid, "playlists", playlistId, "songs"), snap => {
+    const songs = [];
+    snap.forEach(d => songs.push(d.data()));
+    callback(songs);
+  });
+}
+
 window.vsongPlaylists = {
   createPlaylist,
   addSongToPlaylist,
   removeSongFromPlaylist,
-  getPlaylistsContainingSong
+  getPlaylistsContainingSong,
+  renamePlaylist,
+  deletePlaylist,
+  watchPlaylistSongs
 };
 
 onAuthStateChanged(auth, async (user) => {
