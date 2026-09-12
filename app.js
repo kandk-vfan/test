@@ -356,6 +356,13 @@ function renderPlayButton(item){
   return `<button class="play-btn" disabled title="${statusLabel(status)}">▶</button>`;
 }
 
+function renderPlaylistAddButton(item){
+  if(!currentUsername) return "";
+  if(!item.status || item.status !== "public") return "";
+
+  return `<button class="playlist-add-btn" data-title="${escapeHtml(item.title)}" data-artist="${escapeHtml(item.artist)}" data-video-id="${item.videoId}" data-time="${item.time}" data-note="${escapeHtml(item.note || "")}" title="ブックマーク(曲)に追加">＋</button>`;
+}
+
 function formatDateTime(iso){
   if(!iso) return "";
   const d = new Date(iso);
@@ -605,14 +612,17 @@ function renderSongs(){
     <div class="play-group">
       ${renderPlayButton(s.latestOngen)}
       <div class="song-date">${formatDate(s.latestOngen.date)}<br>(音源)${s.latestOngen.status && s.latestOngen.status !== "public" ? `<br>${statusLabel(s.latestOngen.status)}` : ""}</div>
+      ${renderPlaylistAddButton(s.latestOngen)}
     </div>
     <div class="play-group">
       ${renderPlayButton(s.latestHikigatari)}
       <div class="song-date">${formatDate(s.latestHikigatari.date)}<br>(弾き語り)${s.latestHikigatari.status && s.latestHikigatari.status !== "public" ? `<br>${statusLabel(s.latestHikigatari.status)}` : ""}</div>
+      ${renderPlaylistAddButton(s.latestHikigatari)}
     </div>
     ` : `
     ${renderPlayButton(s.latest)}
     <div class="song-date">${formatDate(s.latest.date)}${s.latest.status && s.latest.status !== "public" ? `<br>${statusLabel(s.latest.status)}` : ""}</div>
+    ${renderPlaylistAddButton(s.latest)}
     `}
   </div>
 </td>
