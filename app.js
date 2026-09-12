@@ -1269,6 +1269,7 @@ function renderPlaylistMain(){
 
       return `
       <div class="playlist-song-row" draggable="true" data-key="${s.key}">
+        <span class="playlist-drag-handle" title="ドラッグして並べ替え">⠿</span>
         <div class="playlist-song-reorder">
           <button class="playlist-move-up" data-key="${s.key}" ${i === 0 ? "disabled" : ""}>▲</button>
           <button class="playlist-move-down" data-key="${s.key}" ${i === songs.length - 1 ? "disabled" : ""}>▼</button>
@@ -1323,24 +1324,41 @@ function renderPlaylistMain(){
     el.querySelectorAll(".playlist-song-row").forEach(row => {
       row.addEventListener("dragstart", () => {
         dragSrcKey = row.dataset.key;
-        row.classList.add("dragging");
+        setTimeout(() => row.classList.add("dragging"), 0);
       });
 
       row.addEventListener("dragend", () => {
         row.classList.remove("dragging");
+        el.querySelectorAll(".playlist-song-row").forEach(r => r.classList.remove("drag-over-top", "drag-over-bottom"));
       });
 
       row.addEventListener("dragover", (e) => {
         e.preventDefault();
+        if(row.dataset.key === dragSrcKey) return;
+
+        const rect = row.getBoundingClientRect();
+        const isTopHalf = (e.clientY - rect.top) < rect.height / 2;
+
+        el.querySelectorAll(".playlist-song-row").forEach(r => r.classList.remove("drag-over-top", "drag-over-bottom"));
+        row.classList.add(isTopHalf ? "drag-over-top" : "drag-over-bottom");
+      });
+
+      row.addEventListener("dragleave", () => {
+        row.classList.remove("drag-over-top", "drag-over-bottom");
       });
 
       row.addEventListener("drop", (e) => {
         e.preventDefault();
         const targetKey = row.dataset.key;
+        row.classList.remove("drag-over-top", "drag-over-bottom");
         if(dragSrcKey === targetKey) return;
 
+        const rect = row.getBoundingClientRect();
+        const isTopHalf = (e.clientY - rect.top) < rect.height / 2;
+
         const newKeys = keys.filter(k => k !== dragSrcKey);
-        const targetIndex = newKeys.indexOf(targetKey);
+        let targetIndex = newKeys.indexOf(targetKey);
+        if(!isTopHalf) targetIndex += 1;
         newKeys.splice(targetIndex, 0, dragSrcKey);
         applyReorder(newKeys);
       });
