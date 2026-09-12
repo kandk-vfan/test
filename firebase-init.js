@@ -90,8 +90,8 @@ function toggleBookmark(uid, videoId, shouldAdd){
 
 window.vsongBookmarks = { toggleBookmark };
 
-function songKey(title, artist){
-  const raw = `${title}||${artist}`;
+function songKey(title, artist, videoId, time){
+  const raw = `${title}||${artist}||${videoId}||${time}`;
   const b64 = btoa(unescape(encodeURIComponent(raw)));
   return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
@@ -120,8 +120,8 @@ async function createPlaylist(uid, name){
   return ref.id;
 }
 
-async function addSongToPlaylist(uid, playlistId, title, artist){
-  const key = songKey(title, artist);
+async function addSongToPlaylist(uid, playlistId, title, artist, videoId, time, note){
+  const key = songKey(title, artist, videoId, time);
   const ref = doc(db, "users", uid, "playlists", playlistId, "songs", key);
 
   const existing = await getDoc(ref);
@@ -129,17 +129,17 @@ async function addSongToPlaylist(uid, playlistId, title, artist){
     return false;
   }
 
-  await setDoc(ref, { title, artist, addedAt: new Date().toISOString() });
+  await setDoc(ref, { title, artist, videoId, time, note: note || "", addedAt: new Date().toISOString() });
   return true;
 }
 
-async function removeSongFromPlaylist(uid, playlistId, title, artist){
-  const key = songKey(title, artist);
+async function removeSongFromPlaylist(uid, playlistId, title, artist, videoId, time){
+  const key = songKey(title, artist, videoId, time);
   await deleteDoc(doc(db, "users", uid, "playlists", playlistId, "songs", key));
 }
 
-async function getPlaylistsContainingSong(uid, playlistIds, title, artist){
-  const key = songKey(title, artist);
+async function getPlaylistsContainingSong(uid, playlistIds, title, artist, videoId, time){
+  const key = songKey(title, artist, videoId, time);
   const results = await Promise.all(
     playlistIds.map(async (id) => {
       const snap = await getDoc(doc(db, "users", uid, "playlists", id, "songs", key));
