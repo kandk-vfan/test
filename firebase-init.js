@@ -4,7 +4,13 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  updateEmail,
+  updatePassword,
+  deleteUser,
+  sendPasswordResetEmail,
+  reauthenticateWithCredential,
+  EmailAuthProvider
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore,
@@ -46,16 +52,23 @@ async function signUp(username, password){
     throw new Error("このユーザー名は既に使われています");
   }
 
-  const cred = await createUserWithEmailAndPassword(auth, usernameToEmail(username), password);
+  const authEmail = usernameToEmail(username);
+  const cred = await createUserWithEmailAndPassword(auth, authEmail, password);
 
-  await setDoc(usernameRef, { uid: cred.user.uid });
+  await setDoc(usernameRef, { uid: cred.user.uid, authEmail });
   await setDoc(doc(db, "users", cred.user.uid), { username, createdAt: new Date().toISOString() });
 
   return cred.user;
 }
 
 async function logIn(username, password){
-  const cred = await signInWithEmailAndPassword(auth, usernameToEmail(username), password);
+  const snap = await getDoc(doc(db, "usernames", username));
+  if(!snap.exists()){
+    throw new Error("ユーザー名またはパスワードが違います");
+  }
+
+  const { authEmail } = snap.data();
+  const cred = await signInWithEmailAndPassword(auth, authEmail, password);
   return cred.user;
 }
 
@@ -90,6 +103,92 @@ function toggleBookmark(uid, videoId, shouldAdd){
 }
 
 window.vsongBookmarks = { toggleBookmark };
+
+async function changeUsername(newUsername){
+  const uid = auth.currentUser.uid;
+
+  const newRef = doc(db, "usernames", newUsername);
+  const existing = await getDoc(newRef);
+  if(existing.exists()){
+    throw new Error("このユーザー名は既に使われています");
+  }
+
+  const oldSnap = await getDoc(doc(db, "users", uid));
+  const oldUsername = oldSnap.data().username;
+  const authEmail = auth.currentUser.email;
+
+  await setDoc(newRef, { uid, authEmail });
+  await setDoc(doc(db, "users", uid), { username: newUsername }, { merge: true });
+  await deleteDoc(doc(db, "usernames", oldUsername));
+
+  return newUsername;
+}
+
+async function setRecoveryEmail(newEmail){
+  await updateEmail(auth.currentUser, newEmail);
+
+  const uid = auth.currentUser.uid;
+  const snap = await getDoc(doc(db, "users", uid));
+  const username = snap.data().username;
+
+  await setDoc(doc(db, "usernames", username), { uid, authEmail: newEmail }, { merge: true });
+  await setDoc(doc(db, "users", uid), { hasRecoveryEmail: true }, { merge: true });
+}
+
+async function changePassword(newPassword){
+  await updatePassword(auth.currentUser, newPassword);
+}
+
+async function reauth(password){
+  const cred = EmailAuthProvider.credential(auth.currentUser.email, password);
+  await reauthenticateWithCredential(auth.currentUser, cred);
+}
+
+async function sendPasswordReset(username){
+  const snap = await getDoc(doc(db, "usernames", username));
+  if(!snap.exists()){
+    throw new Error("ユーザー名が見つかりません");
+  }
+
+  const { authEmail } = snap.data();
+  if(!authEmail || authEmail.endsWith(`@${DUMMY_DOMAIN}`)){
+    throw new Error("復旧用メールアドレスが登録されていません");
+  }
+
+  await sendPasswordResetEmail(auth, authEmail);
+}
+
+async function deleteAccount(){
+  const uid = auth.currentUser.uid;
+  const snap = await getDoc(doc(db, "users", uid));
+  const username = snap.data()?.username;
+
+  const bmSnap = await getDocs(collection(db, "users", uid, "bookmarks"));
+  await Promise.all(bmSnap.docs.map(d => deleteDoc(d.ref)));
+
+  const plSnap = await getDocs(collection(db, "users", uid, "playlists"));
+  await Promise.all(plSnap.docs.map(async (p) => {
+    const songsSnap = await getDocs(collection(db, "users", uid, "playlists", p.id, "songs"));
+    await Promise.all(songsSnap.docs.map(s => deleteDoc(s.ref)));
+    await deleteDoc(p.ref);
+  }));
+
+  if(username){
+    await deleteDoc(doc(db, "usernames", username));
+  }
+  await deleteDoc(doc(db, "users", uid));
+
+  await deleteUser(auth.currentUser);
+}
+
+window.vsongAccount = {
+  changeUsername,
+  setRecoveryEmail,
+  changePassword,
+  reauth,
+  sendPasswordReset,
+  deleteAccount
+};
 
 function songKey(title, artist, videoId, time){
   const raw = `${title}||${artist}||${videoId}||${time}`;
