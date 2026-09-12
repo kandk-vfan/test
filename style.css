@@ -1114,9 +1114,6 @@ body.hjm-theme .status-note-inline{
 }
 
 .playlist-menu{
-  position:absolute;
-  right:8px;
-  bottom:40px;
   background:#111827;
   border:1px solid #334155;
   border-radius:8px;
@@ -1125,7 +1122,7 @@ body.hjm-theme .status-note-inline{
   flex-direction:column;
   gap:4px;
   min-width:160px;
-  z-index:30;
+  z-index:100;
 }
 
 .playlist-menu-title{
