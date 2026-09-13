@@ -1335,6 +1335,11 @@ body.hjm-theme .status-note-inline{
   border-radius:999px;
   width:32px;
   height:32px;
+  padding:0;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   color:#e5e7eb;
   font-size:18px;
   cursor:pointer;
