@@ -1346,6 +1346,11 @@ body.hjm-theme .status-note-inline{
   z-index:10001;
 }
 
+.modal-close span{
+  position:relative;
+  top:1px;
+}
+
 .modal-close:hover{
   background:#334155;
 }
