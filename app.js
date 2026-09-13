@@ -959,6 +959,7 @@ function renderAuthArea(user){
       <div id="authPanel" class="auth-panel hidden">
         <button id="authClose" class="auth-close">×</button>
         <button id="openSettingsBtn">設定</button>
+        <button class="auth-switch" onclick="openPrivacyModal()">プライバシーポリシー</button>
         <button id="logoutBtn">ログアウト</button>
       </div>
     `;
@@ -1004,6 +1005,7 @@ function renderAuthPanelBody(el, mode){
       <button id="authSubmit">${isSignup ? "登録する" : "ログイン"}</button>
       <button id="authSwitch" class="auth-switch">${isSignup ? "ログインはこちら" : "はじめての方はこちら(新規登録)"}</button>
       ${!isSignup ? `<button id="authForgotPw" class="auth-switch">パスワードを忘れた方はこちら</button>` : ""}
+      <button class="auth-switch" onclick="openPrivacyModal()">プライバシーポリシー</button>
       <span id="authError" class="auth-error"></span>
     </div>
   `;
@@ -1454,3 +1456,11 @@ document.getElementById("settingsDeleteBtn").addEventListener("click", async () 
     msg.textContent = e.message || "エラーが発生しました";
   }
 });
+
+function openPrivacyModal(){
+  document.getElementById("privacyModal").classList.remove("hidden");
+}
+
+function closePrivacyModal(){
+  document.getElementById("privacyModal").classList.add("hidden");
+}
