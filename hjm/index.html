@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<base href="./">
+<meta charset="UTF-8">
+<title>hajime Songs</title>
+<link rel="stylesheet" href="style.css">
+
+<link rel="icon" type="image/svg+xml" href="drink.svg">
+
+<meta property="og:title" content="🦊🍺🎵 hajime Song List">
+<meta property="og:description" content="配信で歌った楽曲をまとめたリスト">
+<meta property="og:image" content="https://list.kandk-vsongs.work/hjm/og.png">
+<meta property="og:url" content=https://list.kandk-vsongs.work/hjm/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body class="hjm-theme">
+
+<h1 class="page-title">🦊💙🎵 hajime Song List 🎵🍺🦊</h1>
+
+<div class="tabs">
+  <button class="tab-button active" onclick="showTab('songs', this)">曲一覧</button>
+  <button class="tab-button" onclick="showTab('streams', this)">配信一覧</button>
+  <button class="tab-button" onclick="showTab('artists', this)">アーティスト別</button>
+</div>
+
+<div id="songs" class="section">
+
+  <div class="summary-row-wrap">
+  
+    <div class="summary" id="songsSummary"></div>
+  
+    <div class="filter-area">
+      <div class="global-filter">
+        <span class="filter-label">🎵全曲</span>
+        <label class="toggle">
+          <input type="checkbox" class="monetizedToggle">
+          <span class="slider"></span>
+        </label>
+        <span class="filter-label">📌収益化後のみ（2026/02/24以降）</span>
+      </div>
+  
+      <div class="filter-message">
+        　※音源の関係で歌えない曲があるかもしれないので、<br>
+        　　リクエストを通したい場合は絞り込み推奨
+      </div>
+    </div>
+  
+    <div class="date-filter-area">
+      <div class="date-input">
+        <span class="filter-label">📅期間</span>
+        <input type="date" class="startDate">
+        <span>〜</span>
+        <input type="date" class="endDate">
+      </div>
+  
+      <div class="quick-buttons">
+        <button type="button" data-type="thisMonth">今月</button>
+        <button type="button" data-type="lastMonth">先月</button>
+        <button type="button" data-type="thisYear">今年</button>
+        <button type="button" data-type="lastYear">去年</button>
+        <button type="button" data-type="all">全期間</button>
+        <button type="button">リセット</button>
+      </div>
+    </div>
+  
+  </div>
+
+  <div class="note-filter-row">
+    <label class="note-filter">
+      <input type="checkbox" id="filterHikigatari">
+      <span>弾き語りで歌ったことがある曲</span>
+    </label>
+  </div>
+
+  <div class="note-filter-row">
+    <label class="note-filter">
+      <input type="checkbox" id="filterUnplayable">
+      <span>視聴可能のみ</span>
+    </label>
+  </div>
+
+  <div class="toolbar">
+    <input id="searchSongs" placeholder="曲名・アーティスト名（&&でAND検索可）">
+    <button id="clearSongs" class="clear-btn">クリア</button>
+  
+    <div class="search-options">
+      <label><input type="checkbox" id="exactMatchSongs"><span>完全一致</span></label>
+      <label><input type="checkbox" id="caseSensitiveSongs"><span>大文字・小文字を区別</span></label>
+    </div>
+    <select id="sortSongsType">
+      <option value="title">曲名</option>
+      <option value="artist">アーティスト</option>
+      <option value="count">回数</option>
+      <option value="date">最新歌唱日</option>
+    </select>
+    <select id="sortSongsOrder">
+      <option value="asc">昇順</option>
+      <option value="desc">降順</option>
+    </select>
+  </div>
+
+  <table id="songsTable">
+    <thead>
+      <tr><th>曲名</th><th>アーティスト</th><th>回数</th><th>再生 (最新)</th><th>備考</th></tr>
+    </thead>
+    <tbody id="songsBody"></tbody>
+  </table>
+</div>
+
+<div id="streams" class="section hidden">
+
+  <div class="summary-row-wrap">
+  
+    <div class="summary" id="streamsSummary"></div>
+  
+    <div class="filter-area">
+      <div class="global-filter">
+        <span class="filter-label">🎵全曲</span>
+        <label class="toggle">
+          <input type="checkbox" class="monetizedToggle">
+          <span class="slider"></span>
+        </label>
+        <span class="filter-label">📌収益化後のみ（2026/02/24以降）</span>
+      </div>
+  
+      <div class="filter-message">
+        　※音源の関係で歌えない曲があるかもしれないので、<br>
+        　　リクエストを通したい場合は絞り込み推奨
+      </div>
+    </div>
+
+    <div class="date-filter-area">
+      <div class="date-input">
+        <span class="filter-label">📅期間</span>
+        <input type="date" class="startDate">
+        <span>〜</span>
+        <input type="date" class="endDate">
+      </div>
+  
+      <div class="quick-buttons">
+        <button type="button" data-type="thisMonth">今月</button>
+        <button type="button" data-type="lastMonth">先月</button>
+        <button type="button" data-type="thisYear">今年</button>
+        <button type="button" data-type="lastYear">去年</button>
+        <button type="button" data-type="all">全期間</button>
+        <button type="button">リセット</button>
+      </div>
+    </div>
+  
+  </div>
+
+  <div class="note-filter-row">
+    <label class="note-filter">
+      <input type="checkbox" id="filterStreamsHikigatari">
+      <span>弾き語り配信のみ</span>
+    </label>
+  </div>
+
+  <div class="note-filter-row">
+    <label class="note-filter">
+      <input type="checkbox" id="filterStreamsUnplayable">
+      <span>視聴可能のみ</span>
+    </label>
+  </div>
+
+  <div class="toolbar">
+    <input id="searchStreams" placeholder="曲名・アーティスト名（&&でAND検索可）">
+    <button id="clearStreams" class="clear-btn">クリア</button>
+  
+    <div class="search-options">
+      <label><input type="checkbox" id="exactMatchStreams"><span>完全一致</span></label>
+      <label><input type="checkbox" id="caseSensitiveStreams"><span>大文字・小文字を区別</span></label>
+    </div>
+    <select id="sortStreamsOrder">
+      <option value="desc">新しい順</option>
+      <option value="asc">古い順</option>
+    </select>
+  </div>
+
+  <div id="streamsCount"></div>
+  <div id="streamsContainer"></div>
+</div>
+
+<div id="artists" class="section hidden">
+
+  <div class="summary-row-wrap">
+  
+    <div class="summary" id="artistsSummary"></div>
+  
+    <div class="filter-area">
+      <div class="global-filter">
+        <span class="filter-label">🎵全曲</span>
+        <label class="toggle">
+          <input type="checkbox" class="monetizedToggle">
+          <span class="slider"></span>
+        </label>
+        <span class="filter-label">📌収益化後のみ（2026/02/24以降）</span>
+      </div>
+
+      <div class="filter-message">
+        　※音源の関係で歌えない曲があるかもしれないので、<br>
+        　　リクエストを通したい場合は絞り込み推奨
+      </div>
+    </div>
+
+    <div class="date-filter-area">
+      <div class="date-input">
+        <span class="filter-label">📅期間</span>
+        <input type="date" class="startDate">
+        <span>〜</span>
+        <input type="date" class="endDate">
+      </div>
+  
+      <div class="quick-buttons">
+        <button type="button" data-type="thisMonth">今月</button>
+        <button type="button" data-type="lastMonth">先月</button>
+        <button type="button" data-type="thisYear">今年</button>
+        <button type="button" data-type="lastYear">去年</button>
+        <button type="button" data-type="all">全期間</button>
+        <button type="button">リセット</button>
+      </div>
+    </div>
+
+  </div>
+  
+  <div class="toolbar">
+    <input id="searchArtists" placeholder="曲名・アーティスト名（&&でAND検索可）">
+    <button id="clearArtists" class="clear-btn">クリア</button>
+  
+    <div class="search-options">
+      <label><input type="checkbox" id="exactMatchArtists"><span>完全一致</span></label>
+      <label><input type="checkbox" id="caseSensitiveArtists"><span>大文字・小文字を区別</span></label>
+    </div>
+    <select id="sortArtistsType">
+      <option value="name">アーティスト名</option>
+      <option value="count">曲数</option>
+    </select>
+
+    <select id="sortArtistsOrder">
+      <option value="asc">昇順</option>
+      <option value="desc">降順</option>
+    </select>
+  </div>
+
+  <table id="artistsTable">
+  
+    <colgroup>
+      <col style="width:15%">
+      <col style="width:85%">
+    </colgroup>
+  
+    <tbody id="artistsBody"></tbody>
+  </table>
+</div>
+
+<div id="modal" class="hidden">
+  <div class="modal-content">
+    <div id="player"></div>
+    <button onclick="closeModal()">閉じる</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
