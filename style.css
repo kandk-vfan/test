@@ -473,12 +473,14 @@ td, th{
 }
 
 #modal.hidden,
-#settingsModal.hidden{
+#settingsModal.hidden,
+#privacyModal.hidden{
   display:none !important;
 }
 
 #modal,
-#settingsModal{
+#settingsModal,
+#privacyModal{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,0.82);
